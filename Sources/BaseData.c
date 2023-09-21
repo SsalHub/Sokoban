@@ -1,12 +1,11 @@
-#define _CRT_SECURE_NO_WARNINGS
-#include "BaseData.h"
+#include "../Headers/BaseData.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
 
 
-HANDLE screenBuffer[2];
+HANDLE screenBuffer[3];
 int currentScreenBufferIndex;
 int Map[_MAP_HEIGHT_][_MAP_WIDTH_];
 Position player;
@@ -19,6 +18,7 @@ void initGame()
 	
 	screenBuffer[0] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	screenBuffer[1] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	screenBuffer[EFFECT_SCREEN] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	currentScreenBufferIndex = 0;
 
 	CONSOLE_CURSOR_INFO cursor;
@@ -26,13 +26,16 @@ void initGame()
 	cursor.bVisible = false;
 	SetConsoleCursorInfo(screenBuffer[0], &cursor);
 	SetConsoleCursorInfo(screenBuffer[1], &cursor);
+	SetConsoleCursorInfo(screenBuffer[EFFECT_SCREEN], &cursor);
 }
 
 void initMap()
 {
-	for (int i = 0; i < _MAP_HEIGHT_; i++)
+	int i, j;
+	
+	for (i = 0; i < _MAP_HEIGHT_; i++)
 	{
-		for (int j = 0; j < _MAP_WIDTH_; j++)
+		for (j = 0; j < _MAP_WIDTH_; j++)
 		{
 			Map[i][j] = _NONE_;
 		}
@@ -94,7 +97,9 @@ void printScreen(char* s)
 	COORD pos = { 0, 0 };
 	DWORD dw;
 	SetConsoleCursorPosition(screenBuffer[currentScreenBufferIndex], pos);
+	SetConsoleCursorPosition(screenBuffer[EFFECT_SCREEN], pos);
 	WriteFile(screenBuffer[currentScreenBufferIndex], s, strlen(s), &dw, NULL);
+	WriteFile(screenBuffer[EFFECT_SCREEN], s, strlen(s), &dw, NULL);
 	SetConsoleActiveScreenBuffer(screenBuffer[currentScreenBufferIndex]);
 	currentScreenBufferIndex = !currentScreenBufferIndex;
 }
@@ -103,11 +108,11 @@ void releaseScreen()
 {
 	CloseHandle(screenBuffer[0]);
 	CloseHandle(screenBuffer[1]);
+	CloseHandle(screenBuffer[2]);
 }
 
 void setConsoleColor(int background, int text)
 {
-	HANDLE tempBuffer = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	SetConsoleTextAttribute(tempBuffer, (background << 4) + text);
-	SetConsoleActiveScreenBuffer(screenBuffer[currentScreenBufferIndex]);
+	SetConsoleTextAttribute(screenBuffer[EFFECT_SCREEN], (background << 4) + text);
+	SetConsoleActiveScreenBuffer(screenBuffer[EFFECT_SCREEN]);
 }

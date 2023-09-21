@@ -1,5 +1,5 @@
-#include "BaseData.h"
-#include "DisplayGame.h"
+#include "../Headers/BaseData.h"
+#include "../Headers/DisplayGame.h"
 
 int main()
 {

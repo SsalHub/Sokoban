@@ -51,7 +51,8 @@ typedef struct Position
 	int y;
 } Position;
 
-extern HANDLE screenBuffer[2];
+#define EFFECT_SCREEN 2
+extern HANDLE screenBuffer[3];
 extern int currentScreenBufferIndex;
 extern int Map[_MAP_HEIGHT_][_MAP_WIDTH_];
 extern Position player;

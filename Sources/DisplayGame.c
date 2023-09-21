@@ -1,30 +1,30 @@
-#define _CRT_SECURE_NO_WARNINGS
-
 #include <stdio.h>
 #include <time.h>
 #include <conio.h>
 #include <windows.h>
 
-#include "BaseData.h"
+#include "../Headers/BaseData.h"
 
 void renderScreenToBuffer(char* buffer)
 {
+	int i, j;
+	
 	clearScreen();
 
 	/* Outside(border) of Map */
-	for (int i = 0; i < _MAP_WIDTH_+2; i++)
+	for (i = 0; i < _MAP_WIDTH_+2; i++)
 	{
 		strcat(buffer, "!!");
 	}
 	strcat(buffer, "\n");
 
-	for (int i = 0; i < _MAP_HEIGHT_; i++)
+	for (i = 0; i < _MAP_HEIGHT_; i++)
 	{
 		/* Outside(border) of Map */
 		strcat(buffer, "!!");
 
 		/* Inside */
-		for (int j = 0; j < _MAP_WIDTH_; j++)
+		for (j = 0; j < _MAP_WIDTH_; j++)
 		{
 			if (EqualsWithPlayerPos(j, i))
 			{
@@ -57,7 +57,7 @@ void renderScreenToBuffer(char* buffer)
 	}
 
 	/* Outside(border) of Map */
-	for (int i = 0; i < _MAP_WIDTH_+2; i++)
+	for (i = 0; i < _MAP_WIDTH_+2; i++)
 	{
 		strcat(buffer, "!!");
 	}
