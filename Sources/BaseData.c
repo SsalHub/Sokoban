@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <windows.h>
 
-
 HANDLE screenBuffer[3];
 int currentScreenBufferIndex;
 int Map[_MAP_HEIGHT_][_MAP_WIDTH_];
+char _MAP_PATH_[16] = "../MAPS/";
 Position player;
 
 void initGame()
@@ -18,7 +18,7 @@ void initGame()
 	
 	screenBuffer[0] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	screenBuffer[1] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	screenBuffer[EFFECT_SCREEN] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	screenBuffer[_EFFECT_SCREEN_] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	currentScreenBufferIndex = 0;
 
 	CONSOLE_CURSOR_INFO cursor;
@@ -26,7 +26,7 @@ void initGame()
 	cursor.bVisible = false;
 	SetConsoleCursorInfo(screenBuffer[0], &cursor);
 	SetConsoleCursorInfo(screenBuffer[1], &cursor);
-	SetConsoleCursorInfo(screenBuffer[EFFECT_SCREEN], &cursor);
+	SetConsoleCursorInfo(screenBuffer[_EFFECT_SCREEN_], &cursor);
 }
 
 void initMap()
@@ -97,9 +97,7 @@ void printScreen(char* s)
 	COORD pos = { 0, 0 };
 	DWORD dw;
 	SetConsoleCursorPosition(screenBuffer[currentScreenBufferIndex], pos);
-	SetConsoleCursorPosition(screenBuffer[EFFECT_SCREEN], pos);
 	WriteFile(screenBuffer[currentScreenBufferIndex], s, strlen(s), &dw, NULL);
-	WriteFile(screenBuffer[EFFECT_SCREEN], s, strlen(s), &dw, NULL);
 	SetConsoleActiveScreenBuffer(screenBuffer[currentScreenBufferIndex]);
 	currentScreenBufferIndex = !currentScreenBufferIndex;
 }
@@ -113,6 +111,39 @@ void releaseScreen()
 
 void setConsoleColor(int background, int text)
 {
-	SetConsoleTextAttribute(screenBuffer[EFFECT_SCREEN], (background << 4) + text);
-	SetConsoleActiveScreenBuffer(screenBuffer[EFFECT_SCREEN]);
+	SetConsoleTextAttribute(screenBuffer[_EFFECT_SCREEN_], (background << 4) + text);
+	SetConsoleActiveScreenBuffer(screenBuffer[_EFFECT_SCREEN_]);
+}
+
+void readMapFile()
+{
+	FILE *fp;
+	char fname[16] = "Stage01.skb";
+	char fullpath[32] = "";
+	char buffer[_MAP_WIDTH_+1] = "";
+	int w, h, i, j;
+	
+	strcpy(fullpath, _MAP_PATH_);
+	strcat(fullpath, fname);
+	
+	fp = fopen(fullpath, "r");
+	if (fp == NULL)
+		return;
+		
+	/* Line 1~2 in .skb file : Width and Height of Map */
+	fgets(buffer, _MAP_WIDTH_+1, fp);
+	w = atoi(buffer);
+	fgets(buffer, _MAP_WIDTH_+1, fp);
+	h = atoi(buffer);
+	
+	for (i = 0; i < h; i++)
+	{
+		fgets(buffer, _MAP_WIDTH_+1, fp);
+		
+		for (j = 0; j < w; j++)
+		{
+			Map[i][j] = buffer[j] - 48;
+		}
+	}
+	
 }

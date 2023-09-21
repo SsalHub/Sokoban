@@ -6,6 +6,7 @@
 #define _SCREEN_HEIGHT_ 30
 #define _MAP_WIDTH_ 20
 #define _MAP_HEIGHT_ 20
+#define _EFFECT_SCREEN_ 2
 
 typedef enum ConsoleColor
 {
@@ -33,6 +34,7 @@ typedef enum GameObject
 	_BLOCK_,
 	_HOUSE_,
 	_BOMB_,
+	_PLAYER_,
 } GameObject;
 
 typedef enum InputType
@@ -51,10 +53,10 @@ typedef struct Position
 	int y;
 } Position;
 
-#define EFFECT_SCREEN 2
 extern HANDLE screenBuffer[3];
 extern int currentScreenBufferIndex;
 extern int Map[_MAP_HEIGHT_][_MAP_WIDTH_];
+extern char _MAP_PATH_[16];
 extern Position player;
 
 void initGame();
@@ -68,3 +70,4 @@ void showRedEffect();
 void printScreen(char*);
 void releaseScreen();
 void setConsoleColor(int, int);
+void readMapFile();
