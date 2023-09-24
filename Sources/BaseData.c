@@ -12,9 +12,11 @@ Position player;
 
 void initGame()
 {
+	ConsoleColor red = _RED_, white = _WHITE_;
 	char screenInitCommand[50] = "";
 	sprintf(screenInitCommand, "mode con:cols=%d lines=%d", _SCREEN_WIDTH_, _SCREEN_HEIGHT_);
 	system(screenInitCommand);
+	SetConsoleTitle("Sokoban : Hansung Univ.");
 	
 	screenBuffer[0] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	screenBuffer[1] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
@@ -27,6 +29,7 @@ void initGame()
 	SetConsoleCursorInfo(screenBuffer[0], &cursor);
 	SetConsoleCursorInfo(screenBuffer[1], &cursor);
 	SetConsoleCursorInfo(screenBuffer[_EFFECT_SCREEN_], &cursor);
+	//SetConsoleTextAttribute(screenBuffer[_EFFECT_SCREEN_], white | (red << 4));
 }
 
 void initMap()
@@ -87,9 +90,16 @@ void exitGame()
 
 void showRedEffect()
 {
-	setConsoleColor(_RED_, _WHITE_);
-	Sleep(10); // 0.05sec
-	setConsoleColor(_BLACK_, _WHITE_);
+	ConsoleColor black = _BLACK_, red = _RED_, white = _WHITE_;
+	char command[2][16];
+	
+	sprintf(command[0], "color %X%X", black, white);
+	sprintf(command[1], "color %X%X", red, white);
+	//SetConsoleActiveScreenBuffer(screenBuffer[_EFFECT_SCREEN_]);
+	system(command[0]);
+	Sleep(50); // 0.1sec
+	//SetConsoleActiveScreenBuffer(screenBuffer[currentScreenBufferIndex]);
+	system(command[1]);
 }
 
 void printScreen(char* s)
@@ -111,7 +121,8 @@ void releaseScreen()
 
 void setConsoleColor(int background, int text)
 {
-	SetConsoleTextAttribute(screenBuffer[_EFFECT_SCREEN_], (background << 4) + text);
+	ConsoleColor c = _RED_;
+	SetConsoleTextAttribute(screenBuffer[_EFFECT_SCREEN_], text | (background << 4));
 	SetConsoleActiveScreenBuffer(screenBuffer[_EFFECT_SCREEN_]);
 }
 

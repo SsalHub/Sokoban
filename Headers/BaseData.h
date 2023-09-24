@@ -8,24 +8,44 @@
 #define _MAP_HEIGHT_ 20
 #define _EFFECT_SCREEN_ 2
 
+//typedef enum ConsoleColor
+//{
+//	_BLACK_,
+//	_BLUE_,
+//	_GREEN_,
+//	_SKYBLUE_,
+//	_RED_,
+//	_PINK_,
+//	_ORANGE_,
+//	_WHITE_,
+//	_GRAY_,
+//	_LIGHTBLUE_,
+//	_BRIGHTGREEN_,
+//	_SKY_,
+//	_BRIGHTRED_,
+//	_BRIGHTPINK_,
+//	_BRIGHTYELLOW_,
+//	_BRIGHTWHITE_,
+//} ConsoleColor;
+
 typedef enum ConsoleColor
 {
 	_BLACK_,
+	_DARKBLUE_,
+	_DARKGREEN_,
+	_DARKSKY_,
+	_DARKRED_,
+	_DARKPURPLE_,
+	_DARKYELLOW_,
+	_GRAY_,
+	_DARKGRAY_,
 	_BLUE_,
 	_GREEN_,
-	_SKYBLUE_,
-	_RED_,
-	_PINK_,
-	_ORANGE_,
-	_WHITE_,
-	_GRAY_,
-	_LIGHTBLUE_,
-	_BRIGHTGREEN_,
 	_SKY_,
-	_BRIGHTRED_,
-	_BRIGHTPINK_,
-	_BRIGHTYELLOW_,
-	_BRIGHTWHITE_,
+	_RED_,
+	_PURPLE_,
+	_YELLOW_,
+	_WHITE_,
 } ConsoleColor;
 
 typedef enum GameObject
