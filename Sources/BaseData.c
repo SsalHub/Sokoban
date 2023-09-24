@@ -12,7 +12,11 @@ Position player;
 
 void initGame()
 {
-	ConsoleColor red = _RED_, white = _WHITE_;
+	ConsoleColor black = _BLACK_, red = _BRIGHTRED_, white = _WHITE_;
+	COORD pos = { 0, 0 };
+	DWORD dw;
+	int i, j;
+	char effectBuffer[_SCREEN_WIDTH_*_SCREEN_HEIGHT_+1];
 	char screenInitCommand[50] = "";
 	sprintf(screenInitCommand, "mode con:cols=%d lines=%d", _SCREEN_WIDTH_, _SCREEN_HEIGHT_);
 	system(screenInitCommand);
@@ -29,7 +33,19 @@ void initGame()
 	SetConsoleCursorInfo(screenBuffer[0], &cursor);
 	SetConsoleCursorInfo(screenBuffer[1], &cursor);
 	SetConsoleCursorInfo(screenBuffer[_EFFECT_SCREEN_], &cursor);
-	//SetConsoleTextAttribute(screenBuffer[_EFFECT_SCREEN_], white | (red << 4));
+	SetConsoleTextAttribute(screenBuffer[_EFFECT_SCREEN_], white | (red << 4));
+	effectBuffer[0] = '\0';
+	for (i = 0; i < _SCREEN_HEIGHT_; i++)
+	{
+		for (j = 0; j < _SCREEN_WIDTH_; j++)
+		{
+			strcat(effectBuffer, " ");
+		}
+		strcat(effectBuffer, "\n");
+	}
+	SetConsoleCursorPosition(screenBuffer[_EFFECT_SCREEN_], pos);
+	WriteFile(screenBuffer[_EFFECT_SCREEN_], effectBuffer, strlen(effectBuffer), &dw, NULL);
+	SetConsoleTextAttribute(screenBuffer[_EFFECT_SCREEN_], white | (black << 4));
 }
 
 void initMap()
@@ -90,16 +106,9 @@ void exitGame()
 
 void showRedEffect()
 {
-	ConsoleColor black = _BLACK_, red = _RED_, white = _WHITE_;
-	char command[2][16];
-	
-	sprintf(command[0], "color %X%X", black, white);
-	sprintf(command[1], "color %X%X", red, white);
-	//SetConsoleActiveScreenBuffer(screenBuffer[_EFFECT_SCREEN_]);
-	system(command[0]);
-	Sleep(50); // 0.1sec
-	//SetConsoleActiveScreenBuffer(screenBuffer[currentScreenBufferIndex]);
-	system(command[1]);
+	SetConsoleActiveScreenBuffer(screenBuffer[_EFFECT_SCREEN_]);
+	Sleep(10); // 0.05sec
+	SetConsoleActiveScreenBuffer(screenBuffer[currentScreenBufferIndex]);
 }
 
 void printScreen(char* s)
