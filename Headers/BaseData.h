@@ -73,10 +73,17 @@ typedef struct Position
 	int y;
 } Position;
 
+typedef struct MapData
+{
+	int width;
+	int height;
+	int Map[_MAP_HEIGHT_][_MAP_WIDTH_];
+} MapData;
+
 extern HANDLE screenBuffer[3];
 extern int currentScreenBufferIndex;
-extern int Map[_MAP_HEIGHT_][_MAP_WIDTH_];
 extern Position player;
+extern MapData mapData;
 
 void initGame();
 void initMap();

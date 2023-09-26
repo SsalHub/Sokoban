@@ -7,9 +7,9 @@
 
 HANDLE screenBuffer[3];
 int currentScreenBufferIndex;
-int Map[_MAP_HEIGHT_][_MAP_WIDTH_];
 char _MAP_PATH_[16] = "../MAPS/";
 Position player;
+MapData mapData;
 
 void initGame()
 {
@@ -57,13 +57,13 @@ void initMap()
 	{
 		for (j = 0; j < _MAP_WIDTH_; j++)
 		{
-			Map[i][j] = _NONE_;
+			mapData.Map[i][j] = _NONE_;
 		}
 	}
 
-	Map[2][3] = _BLOCK_;
-	Map[3][4] = _HOUSE_;
-	Map[4][5] = _BOMB_;
+	mapData.Map[2][3] = _BLOCK_;
+	mapData.Map[3][4] = _HOUSE_;
+	mapData.Map[4][5] = _BOMB_;
 }
 
 void setPlayerPos(int x, int y)
@@ -142,7 +142,7 @@ void loadMapData(char* stageName)
 	char fname[16] = "";
 	char mapDataPath[1000] = "";
 	char buffer[_MAP_WIDTH_+1] = "";
-	int w, h, i, j;
+	int i, j;
 	
 	_getcwd(mapDataPath, 1000);		// path of root of this project directory
 	sprintf(fname, "%s.skb", stageName);
@@ -158,17 +158,17 @@ void loadMapData(char* stageName)
 		
 	/* Line 1~2 in .skb file : Width and Height of Map */
 	fgets(buffer, _MAP_WIDTH_+1, fp);
-	w = atoi(buffer);
+	mapData.width = atoi(buffer);
 	fgets(buffer, _MAP_WIDTH_+1, fp);
-	h = atoi(buffer);
+	mapData.height = atoi(buffer);
 	
-	for (i = 0; i < h; i++)
+	for (i = 0; i < mapData.height; i++)
 	{
 		fgets(buffer, _MAP_WIDTH_+1, fp);
 		
-		for (j = 0; j < w; j++)
+		for (j = 0; j < mapData.width; j++)
 		{
-			Map[i][j] = buffer[j] - 48;
+			mapData.Map[i][j] = buffer[j] - 48;
 		}
 	}	
 }
@@ -180,19 +180,19 @@ void renderScreenToBuffer(char* buffer)
 	clearScreen();
 
 	/* Outside(border) of Map */
-	for (i = 0; i < _MAP_WIDTH_+2; i++)
+	for (i = 0; i < mapData.width+2; i++)
 	{
 		strcat(buffer, "!!");
 	}
 	strcat(buffer, "\n");
 
-	for (i = 0; i < _MAP_HEIGHT_; i++)
+	for (i = 0; i < mapData.height; i++)
 	{
 		/* Outside(border) of Map */
 		strcat(buffer, "!!");
 
 		/* Inside */
-		for (j = 0; j < _MAP_WIDTH_; j++)
+		for (j = 0; j < mapData.width; j++)
 		{
 			/* Player */
 			if (EqualsWithPlayerPos(j, i))
@@ -202,7 +202,7 @@ void renderScreenToBuffer(char* buffer)
 			}
 
 			/* GameObjects */
-			switch (Map[i][j])
+			switch (mapData.Map[i][j])
 			{
 			case _NONE_:
 				strcat(buffer, "  ");
@@ -227,7 +227,7 @@ void renderScreenToBuffer(char* buffer)
 	}
 
 	/* Outside(border) of Map */
-	for (i = 0; i < _MAP_WIDTH_+2; i++)
+	for (i = 0; i < mapData.width+2; i++)
 	{
 		strcat(buffer, "!!");
 	}
