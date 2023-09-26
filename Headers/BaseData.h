@@ -50,11 +50,11 @@ typedef enum ConsoleColor
 
 typedef enum GameObject
 {
-	_NONE_,
-	_BLOCK_,
-	_HOUSE_,
-	_BOMB_,
-	_PLAYER_,
+	_NONE_ = 0,
+	_BLOCK_ = 1,
+	_BOMB_ = 2,
+	_EMPTY_HOUSE_ = 3,
+	_FILLED_HOUSE_ = 4,
 } GameObject;
 
 typedef enum InputType
@@ -86,9 +86,9 @@ extern Position player;
 extern MapData mapData;
 
 void initGame();
-void initMap();
 void setPlayerPos(int, int);
 bool translatePlayerPos(int, int);
+bool pushBomb(int, int);
 bool EqualsWithPlayerPos(int, int);
 void clearScreen();
 void exitGame();
@@ -98,3 +98,4 @@ void releaseScreen();
 void setConsoleColor(int, int);
 void loadMapData();
 void renderScreenToBuffer(char*);
+bool checkClearStage();

@@ -22,20 +22,16 @@ void displayGame()
 			switch (input)
 			{
 			case _LEFT_:
-				if (!translatePlayerPos(-1, 0))
-					showRedEffect();
+				translatePlayerPos(-1, 0);
 				break;
 			case _RIGHT_:
-				if (!translatePlayerPos(1, 0))
-					showRedEffect();
+				translatePlayerPos(1, 0);
 				break;
 			case _UP_:
-				if (!translatePlayerPos(0, -1))
-					showRedEffect();
+				translatePlayerPos(0, -1);
 				break;
 			case _DOWN_:
-				if (!translatePlayerPos(0, 1))
-					showRedEffect();
+				translatePlayerPos(0, 1);
 				break;
 			case _SPACE_:
 				break;

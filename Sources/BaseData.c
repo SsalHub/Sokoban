@@ -49,23 +49,6 @@ void initGame()
 	SetConsoleTextAttribute(screenBuffer[_EFFECT_SCREEN_], white | (black << 4));
 }
 
-void initMap()
-{
-	int i, j;
-	
-	for (i = 0; i < _MAP_HEIGHT_; i++)
-	{
-		for (j = 0; j < _MAP_WIDTH_; j++)
-		{
-			mapData.Map[i][j] = _NONE_;
-		}
-	}
-
-	mapData.Map[2][3] = _BLOCK_;
-	mapData.Map[3][4] = _HOUSE_;
-	mapData.Map[4][5] = _BOMB_;
-}
-
 void setPlayerPos(int x, int y)
 {
 	player.x = x;
@@ -75,12 +58,66 @@ void setPlayerPos(int x, int y)
 /* Translate player's position. If success it returns true, or false. */
 bool translatePlayerPos(int x, int y)
 {
-	if (player.x + x < 0 || _MAP_WIDTH_ <= player.x + x)
+	int newX = player.x + x, newY = player.y + y;
+	
+	/* If player tried get out of the Map */
+	if (newX < 0 || _MAP_WIDTH_ <= newX)
+	{
+		showRedEffect();
 		return false;
-	if (player.y + y < 0 || _MAP_HEIGHT_ <= player.y + y)
+	}
+	if (newY < 0 || _MAP_HEIGHT_ <= newY)
+	{
+		showRedEffect();
 		return false;
-	player.x += x;
-	player.y += y;
+	}
+	
+	/* Check the position where player moved on. */
+	switch (mapData.Map[newY][newX])
+	{
+		case _BLOCK_:
+			showRedEffect();
+			return false;
+			
+		case _BOMB_:
+			if (!pushBomb(newX, newY)) return;
+			
+		case _NONE_:
+		case _EMPTY_HOUSE_:
+		case _FILLED_HOUSE_:
+			player.x = newX;
+			player.y = newY;
+			break;
+	}
+	
+	return true;
+}
+
+bool pushBomb(int bombX, int bombY)
+{
+	int destX = bombX + (bombX - player.x), destY = bombY + (bombY - player.y);
+	
+	switch (mapData.Map[destY][destX])
+	{
+		case _BLOCK_:
+			return false;
+			
+		case _EMPTY_HOUSE_:
+			mapData.Map[bombY][bombX] = _NONE_;
+			mapData.Map[destY][destX] = _FILLED_HOUSE_;
+			if (checkClearStage())
+			{
+				/* Stage Clear Action */
+				
+				// something
+				
+			}
+		
+		case _NONE_:
+		case _FILLED_HOUSE_:
+			break;
+	}
+	
 	return true;
 }
 
@@ -142,7 +179,7 @@ void loadMapData(char* stageName)
 	char fname[16] = "";
 	char mapDataPath[1000] = "";
 	char buffer[_MAP_WIDTH_+1] = "";
-	int i, j;
+	int i, j, x, y;
 	
 	_getcwd(mapDataPath, 1000);		// path of root of this project directory
 	sprintf(fname, "%s.skb", stageName);
@@ -162,6 +199,13 @@ void loadMapData(char* stageName)
 	fgets(buffer, _MAP_WIDTH_+1, fp);
 	mapData.height = atoi(buffer);
 	
+	/* Line 3~4 in .skb file : Position of Player. X and Y */
+	fgets(buffer, _MAP_WIDTH_+1, fp);
+	x = atoi(buffer);
+	fgets(buffer, _MAP_WIDTH_+1, fp);
+	y = atoi(buffer);
+	setPlayerPos(x, y);
+	
 	for (i = 0; i < mapData.height; i++)
 	{
 		fgets(buffer, _MAP_WIDTH_+1, fp);
@@ -176,10 +220,22 @@ void loadMapData(char* stageName)
 void renderScreenToBuffer(char* buffer)
 {
 	int i, j;
+	char align[_SCREEN_WIDTH_] = "";
 	
 	clearScreen();
+	
+	/* Align center */
+	for (i = 0; i < ((_SCREEN_WIDTH_)-((mapData.width+2)*2)) / 2; i++)
+	{
+		strcat(align, " ");
+	}
+	for (i = 0; i < (_SCREEN_HEIGHT_ - mapData.height) / 2 - 1; i++)
+	{
+		strcat(buffer, "\n");
+	}
 
 	/* Outside(border) of Map */
+	strcat(buffer, align);
 	for (i = 0; i < mapData.width+2; i++)
 	{
 		strcat(buffer, "!!");
@@ -189,6 +245,7 @@ void renderScreenToBuffer(char* buffer)
 	for (i = 0; i < mapData.height; i++)
 	{
 		/* Outside(border) of Map */
+		strcat(buffer, align);
 		strcat(buffer, "!!");
 
 		/* Inside */
@@ -197,26 +254,35 @@ void renderScreenToBuffer(char* buffer)
 			/* Player */
 			if (EqualsWithPlayerPos(j, i))
 			{
-				strcat(buffer, "¡à");
+				strcat(buffer, "¡Ù");
 				continue;
 			}
 
 			/* GameObjects */
 			switch (mapData.Map[i][j])
 			{
-			case _NONE_:
-				strcat(buffer, "  ");
-				break;
-			case _BLOCK_:
-				strcat(buffer, "[]");
-				break;
-			case _HOUSE_:
-				strcat(buffer, "{}");
-				break;
-			case _BOMB_:
-				strcat(buffer, "<>");
-			default:
-				break;
+				case _NONE_:
+					strcat(buffer, "  ");
+					break;
+					
+				case _BLOCK_:
+					strcat(buffer, "[]");
+					break;
+					
+				case _BOMB_:
+					strcat(buffer, "£À");
+					break;
+					
+				case _EMPTY_HOUSE_:
+					strcat(buffer, "¢»");
+					break;
+					
+				case _FILLED_HOUSE_:
+					strcat(buffer, "¢¼");
+					break;
+					
+				default:
+					break;
 			}
 		}
 
@@ -227,6 +293,7 @@ void renderScreenToBuffer(char* buffer)
 	}
 
 	/* Outside(border) of Map */
+	strcat(buffer, align);
 	for (i = 0; i < mapData.width+2; i++)
 	{
 		strcat(buffer, "!!");
@@ -234,3 +301,18 @@ void renderScreenToBuffer(char* buffer)
 	strcat(buffer, "\n");
 }
 
+bool checkClearStage()
+{
+	int i, j;
+	
+	for (i = 0; i < mapData.height; i++)
+	{
+		for (j = 0; j < mapData.width; j++)
+		{
+			if (mapData.Map[i][j] == _EMPTY_HOUSE_)		// 
+				return false;
+		}
+	}
+	
+	return true;
+}
