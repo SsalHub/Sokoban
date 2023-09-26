@@ -4,9 +4,7 @@
 int main()
 {
 	initGame();
-	setPlayerPos(0, 0);
-
-	displayGame();
+	loadMainMenu();
 	
 	return 0;
 }

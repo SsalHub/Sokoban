@@ -5,48 +5,75 @@
 #include <windows.h>
 #include <direct.h>
 
-HANDLE screenBuffer[3];
+HANDLE screenBuffer[2];
 int currentScreenBufferIndex;
+HANDLE effectBuffer;
+HANDLE loadingStageBuffer;
 char _MAP_PATH_[16] = "../MAPS/";
 Position player;
 MapData mapData;
 
 void initGame()
 {
-	ConsoleColor black = _BLACK_, red = _BRIGHTRED_, white = _WHITE_;
+	ConsoleColor black = _BLACK_, red = _BRIGHTRED_, skyblue = _SKYBLUE_, white = _WHITE_;
 	COORD pos = { 0, 0 };
 	DWORD dw;
 	int i, j;
-	char effectBuffer[_SCREEN_WIDTH_*_SCREEN_HEIGHT_+1];
+	char bufferString[_SCREEN_WIDTH_*_SCREEN_HEIGHT_+1];
 	char screenInitCommand[50] = "";
 	sprintf(screenInitCommand, "mode con:cols=%d lines=%d", _SCREEN_WIDTH_, _SCREEN_HEIGHT_);
 	system(screenInitCommand);
-	SetConsoleTitle("Sokoban : Hansung Univ.");
+	SetConsoleTitle("Sokoban : 19 Song JaeUk in Hansung Univ.");
 	
 	screenBuffer[0] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	screenBuffer[1] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	screenBuffer[_EFFECT_SCREEN_] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	effectBuffer = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	loadingStageBuffer = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	currentScreenBufferIndex = 0;
 
 	CONSOLE_CURSOR_INFO cursor;
 	cursor.dwSize = 1;
 	cursor.bVisible = false;
+	
 	SetConsoleCursorInfo(screenBuffer[0], &cursor);
 	SetConsoleCursorInfo(screenBuffer[1], &cursor);
-	SetConsoleCursorInfo(screenBuffer[_EFFECT_SCREEN_], &cursor);
-	SetConsoleTextAttribute(screenBuffer[_EFFECT_SCREEN_], white | (red << 4));
-	effectBuffer[0] = '\0';
+	
+	SetConsoleCursorInfo(effectBuffer, &cursor);
+	SetConsoleTextAttribute(effectBuffer, white | (red << 4));
+	bufferString[0] = '\0';
 	for (i = 0; i < _SCREEN_HEIGHT_; i++)
 	{
 		for (j = 0; j < _SCREEN_WIDTH_; j++)
 		{
-			strcat(effectBuffer, " ");
+			strcat(bufferString, " ");
 		}
-		strcat(effectBuffer, "\n");
+		strcat(bufferString, "\n");
 	}
-	SetConsoleCursorPosition(screenBuffer[_EFFECT_SCREEN_], pos);
-	WriteFile(screenBuffer[_EFFECT_SCREEN_], effectBuffer, strlen(effectBuffer), &dw, NULL);
-	SetConsoleTextAttribute(screenBuffer[_EFFECT_SCREEN_], white | (black << 4));
+	SetConsoleCursorPosition(effectBuffer, pos);
+	WriteFile(effectBuffer, bufferString, strlen(bufferString), &dw, NULL);
+	SetConsoleTextAttribute(effectBuffer, white | (black << 4));
+	
+	SetConsoleCursorInfo(loadingStageBuffer, &cursor);
+	SetConsoleTextAttribute(effectBuffer, white | (skyblue << 4));
+	WriteFile(effectBuffer, bufferString, strlen(bufferString), &dw, NULL);
+	SetConsoleTextAttribute(effectBuffer, white | (black << 4));
+}
+
+void loadMainMenu()
+{
+	loadStageSelect();
+}
+
+void showLoadingStage()
+{
+	
+}
+
+void loadStageSelect()
+{
+	showLoadingStage();
+	Sleep(2000);	// 2.0sec
+	displayGame();
 }
 
 void setPlayerPos(int x, int y)
@@ -144,7 +171,7 @@ void exitGame()
 
 void showRedEffect()
 {
-	SetConsoleActiveScreenBuffer(screenBuffer[_EFFECT_SCREEN_]);
+	SetConsoleActiveScreenBuffer(effectBuffer);
 	Sleep(10); // 0.05sec
 	SetConsoleActiveScreenBuffer(screenBuffer[currentScreenBufferIndex]);
 }
@@ -164,13 +191,6 @@ void releaseScreen()
 	CloseHandle(screenBuffer[0]);
 	CloseHandle(screenBuffer[1]);
 	CloseHandle(screenBuffer[2]);
-}
-
-void setConsoleColor(int background, int text)
-{
-	ConsoleColor c = _RED_;
-	SetConsoleTextAttribute(screenBuffer[_EFFECT_SCREEN_], text | (background << 4));
-	SetConsoleActiveScreenBuffer(screenBuffer[_EFFECT_SCREEN_]);
 }
 
 void loadMapData(char* stageName)
@@ -309,7 +329,7 @@ bool checkClearStage()
 	{
 		for (j = 0; j < mapData.width; j++)
 		{
-			if (mapData.Map[i][j] == _EMPTY_HOUSE_)		// 
+			if (mapData.Map[i][j] == _EMPTY_HOUSE_)		
 				return false;
 		}
 	}

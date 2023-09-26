@@ -6,7 +6,6 @@
 #define _SCREEN_HEIGHT_ 30
 #define _MAP_WIDTH_ 20
 #define _MAP_HEIGHT_ 20
-#define _EFFECT_SCREEN_ 2
 
 typedef enum ConsoleColor
 {
@@ -27,26 +26,6 @@ typedef enum ConsoleColor
 	_BRIGHTYELLOW_,
 	_BRIGHTWHITE_,
 } ConsoleColor;
-
-//typedef enum ConsoleColor
-//{
-//	_BLACK_,
-//	_DARKBLUE_,
-//	_DARKGREEN_,
-//	_DARKSKY_,
-//	_DARKRED_,
-//	_DARKPURPLE_,
-//	_DARKYELLOW_,
-//	_GRAY_,
-//	_DARKGRAY_,
-//	_BLUE_,
-//	_GREEN_,
-//	_SKY_,
-//	_RED_,
-//	_PURPLE_,
-//	_YELLOW_,
-//	_WHITE_,
-//} ConsoleColor;
 
 typedef enum GameObject
 {
@@ -80,12 +59,17 @@ typedef struct MapData
 	int Map[_MAP_HEIGHT_][_MAP_WIDTH_];
 } MapData;
 
-extern HANDLE screenBuffer[3];
+extern HANDLE screenBuffer[2];
 extern int currentScreenBufferIndex;
+extern HANDLE effectBuffer;
+extern HANDLE loadingStageBuffer;
 extern Position player;
 extern MapData mapData;
 
 void initGame();
+void loadMainMenu();
+void showLoadingStage();
+void loadStageSelect();
 void setPlayerPos(int, int);
 bool translatePlayerPos(int, int);
 bool pushBomb(int, int);
@@ -95,7 +79,6 @@ void exitGame();
 void showRedEffect();
 void printScreen(char*);
 void releaseScreen();
-void setConsoleColor(int, int);
 void loadMapData();
 void renderScreenToBuffer(char*);
 bool checkClearStage();
