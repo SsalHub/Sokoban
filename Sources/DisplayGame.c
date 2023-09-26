@@ -5,69 +5,12 @@
 
 #include "../Headers/BaseData.h"
 
-void renderScreenToBuffer(char* buffer)
-{
-	int i, j;
-	
-	clearScreen();
-
-	/* Outside(border) of Map */
-	for (i = 0; i < _MAP_WIDTH_+2; i++)
-	{
-		strcat(buffer, "!!");
-	}
-	strcat(buffer, "\n");
-
-	for (i = 0; i < _MAP_HEIGHT_; i++)
-	{
-		/* Outside(border) of Map */
-		strcat(buffer, "!!");
-
-		/* Inside */
-		for (j = 0; j < _MAP_WIDTH_; j++)
-		{
-			if (EqualsWithPlayerPos(j, i))
-			{
-				strcat(buffer, "()");
-				continue;
-			}
-
-			switch (Map[i][j])
-			{
-			case _NONE_:
-				strcat(buffer, "  ");
-				break;
-			case _BLOCK_:
-				strcat(buffer, "[]");
-				break;
-			case _HOUSE_:
-				strcat(buffer, "{}");
-				break;
-			case _BOMB_:
-				strcat(buffer, "<>");
-			default:
-				break;
-			}
-		}
-
-		/* Outside(border) of Map */
-		strcat(buffer, "!!");
-
-		strcat(buffer, "\n");
-	}
-
-	/* Outside(border) of Map */
-	for (i = 0; i < _MAP_WIDTH_+2; i++)
-	{
-		strcat(buffer, "!!");
-	}
-	strcat(buffer, "\n");
-}
-
 void displayGame()
 {
 	char buffer[_SCREEN_WIDTH_ * _SCREEN_HEIGHT_];
 	char input;
+	
+	loadMapData("Stage01");
 	
 	while (1)
 	{

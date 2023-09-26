@@ -8,5 +8,6 @@ int main()
 	setPlayerPos(0, 0);
 
 	displayGame();
+	
 	return 0;
 }

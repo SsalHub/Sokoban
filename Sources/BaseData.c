@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
+#include <direct.h>
 
 HANDLE screenBuffer[3];
 int currentScreenBufferIndex;
@@ -135,20 +136,25 @@ void setConsoleColor(int background, int text)
 	SetConsoleActiveScreenBuffer(screenBuffer[_EFFECT_SCREEN_]);
 }
 
-void readMapFile()
+void loadMapData(char* stageName)
 {
 	FILE *fp;
-	char fname[16] = "Stage01.skb";
-	char fullpath[32] = "";
+	char fname[16] = "";
+	char mapDataPath[1000] = "";
 	char buffer[_MAP_WIDTH_+1] = "";
 	int w, h, i, j;
 	
-	strcpy(fullpath, _MAP_PATH_);
-	strcat(fullpath, fname);
+	_getcwd(mapDataPath, 1000);		// path of root of this project directory
+	sprintf(fname, "%s.skb", stageName);
+	sprintf(mapDataPath, "%s\\Maps\\%s", mapDataPath, fname);
 	
-	fp = fopen(fullpath, "r");
+	fp = fopen(mapDataPath, "r");
 	if (fp == NULL)
-		return;
+	{
+		printf("Fatal Error : Failed to load map data!\n");
+		printf("file name : %s, path : %s\nEnd sokoban game progresses.\n", fname, mapDataPath);
+		exit(1);
+	}
 		
 	/* Line 1~2 in .skb file : Width and Height of Map */
 	fgets(buffer, _MAP_WIDTH_+1, fp);
@@ -164,6 +170,67 @@ void readMapFile()
 		{
 			Map[i][j] = buffer[j] - 48;
 		}
-	}
-	
+	}	
 }
+
+void renderScreenToBuffer(char* buffer)
+{
+	int i, j;
+	
+	clearScreen();
+
+	/* Outside(border) of Map */
+	for (i = 0; i < _MAP_WIDTH_+2; i++)
+	{
+		strcat(buffer, "!!");
+	}
+	strcat(buffer, "\n");
+
+	for (i = 0; i < _MAP_HEIGHT_; i++)
+	{
+		/* Outside(border) of Map */
+		strcat(buffer, "!!");
+
+		/* Inside */
+		for (j = 0; j < _MAP_WIDTH_; j++)
+		{
+			/* Player */
+			if (EqualsWithPlayerPos(j, i))
+			{
+				strcat(buffer, "бр");
+				continue;
+			}
+
+			/* GameObjects */
+			switch (Map[i][j])
+			{
+			case _NONE_:
+				strcat(buffer, "  ");
+				break;
+			case _BLOCK_:
+				strcat(buffer, "[]");
+				break;
+			case _HOUSE_:
+				strcat(buffer, "{}");
+				break;
+			case _BOMB_:
+				strcat(buffer, "<>");
+			default:
+				break;
+			}
+		}
+
+		/* Outside(border) of Map */
+		strcat(buffer, "!!");
+
+		strcat(buffer, "\n");
+	}
+
+	/* Outside(border) of Map */
+	for (i = 0; i < _MAP_WIDTH_+2; i++)
+	{
+		strcat(buffer, "!!");
+	}
+	strcat(buffer, "\n");
+}
+

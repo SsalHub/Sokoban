@@ -76,7 +76,6 @@ typedef struct Position
 extern HANDLE screenBuffer[3];
 extern int currentScreenBufferIndex;
 extern int Map[_MAP_HEIGHT_][_MAP_WIDTH_];
-extern char _MAP_PATH_[16];
 extern Position player;
 
 void initGame();
@@ -90,4 +89,5 @@ void showRedEffect();
 void printScreen(char*);
 void releaseScreen();
 void setConsoleColor(int, int);
-void readMapFile();
+void loadMapData();
+void renderScreenToBuffer(char*);
