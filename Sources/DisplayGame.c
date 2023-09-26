@@ -7,9 +7,12 @@
 
 void displayGame()
 {
+	int stage = 1;
 	char buffer[_SCREEN_WIDTH_ * _SCREEN_HEIGHT_];
+	char stage[32] = "";
 	char input;
 	
+	sprintf(stage, "Stage%2d", stage);
 	loadMapData("Stage01");
 	
 	while (1)
