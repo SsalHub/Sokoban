@@ -71,19 +71,6 @@ void initGame()
 	SetConsoleTextAttribute(loadingStageBuffer, white | (black << 4));
 	
 	SetConsoleCursorInfo(stageClearBuffer, &cursor);
-	bufferString[0] = '\0';
-	SetConsoleTextAttribute(stageClearBuffer, white | (red << 4));
-	for (i = 0; i < _SCREEN_HEIGHT_; i++)
-	{
-		for (j = 0; j < _SCREEN_WIDTH_; j++)
-		{
-			strcat(bufferString, " ");
-		}
-		strcat(bufferString, "\n");
-	}
-	SetConsoleCursorPosition(stageClearBuffer, pos);
-	WriteFile(stageClearBuffer, bufferString, strlen(bufferString), &dw, NULL);
-	SetConsoleTextAttribute(stageClearBuffer, white | (black << 4));
 }
 
 void loadMainMenu()
@@ -103,16 +90,18 @@ void showLoadingStage()
 void loadStageSelect()
 {
 	Flag flag;
+	int stageIndex;
 	
+	stageIndex = 1;
 	while(1)
 	{
 		showLoadingStage();
 		
 		//Sleep(2000);	// 2.0sec
 		
-		flag = displayGame(1);
+		flag = displayGame(stageIndex);
 		if (flag == _STAGE_CLEAR_)
-			showClearStage();
+			showClearStage(stageIndex);
 		else
 			break;
 	}
@@ -462,11 +451,33 @@ bool checkClearStage()
 	return true;
 }
 
-void showClearStage()
+void showClearStage(int stageIndex)
 {
+	ConsoleColor black = _BLACK_, yellow = _BRIGHTYELLOW_;
 	COORD pos = { 0, 0 };
 	DWORD dw;
+	char bufferString[_SCREEN_WIDTH_*_SCREEN_HEIGHT_+1];
+	char clearText[_SCREEN_WIDTH+1];
+	int i, j;
+	sprintf(clearText, "Stage%2d Loading . . .", stageIndex);
+	bufferString[0] = '\0';
+	SetConsoleTextAttribute(stageClearBuffer, black | (yellow << 4));
+	for (i = 0; i < _SCREEN_HEIGHT_ ; i++)
+	{
+		for (j = 0; j < _SCREEN_WIDTH_; j++)
+		{
+			strcat(bufferString, " ");
+		}
+		strcat(bufferString, "\n");
+	}
+	SetConsoleCursorPosition(stageClearBuffer, pos);
+	WriteFile(stageClearBuffer, bufferString, strlen(bufferString), &dw, NULL);
+	SetConsoleTextAttribute(stageClearBuffer, white | (black << 4));
+	
 	SetConsoleActiveScreenBuffer(stageClearBuffer);
+	
+	sprintf(clearText, "Stage%2d Loading . . .", stageIndex);
+	
 	Sleep(2000);	// 2.0sec
 	SetConsoleActiveScreenBuffer(screenBuffer[currentScreenBufferIndex]);
 }

@@ -97,4 +97,4 @@ void releaseScreen();
 void loadMapData();
 void renderScreenToBuffer(char*);
 bool checkClearStage();
-void showClearStage();
+void showClearStage(int);
