@@ -5,12 +5,12 @@
 
 #include "../Headers/BaseData.h"
 
-void displayGame()
+Flag displayGame(int stageIndex)
 {
-	int stageIndex = 1;
 	char buffer[_SCREEN_WIDTH_ * _SCREEN_HEIGHT_];
 	char stage[32] = "";
 	char input;
+	Flag flag;
 	
 	sprintf(stage, "Stage%2d", stageIndex);
 	loadMapData("Stage01");
@@ -18,6 +18,7 @@ void displayGame()
 	while (1)
 	{
 		buffer[0] = '\0';
+		flag = _FALSE_;
 
 		if (_kbhit())
 		{
@@ -25,16 +26,16 @@ void displayGame()
 			switch (input)
 			{
 			case _LEFT_:
-				translatePlayerPos(-1, 0);
+				flag = translatePlayerPos(-1, 0);
 				break;
 			case _RIGHT_:
-				translatePlayerPos(1, 0);
+				flag = translatePlayerPos(1, 0);
 				break;
 			case _UP_:
-				translatePlayerPos(0, -1);
+				flag = translatePlayerPos(0, -1);
 				break;
 			case _DOWN_:
-				translatePlayerPos(0, 1);
+				flag = translatePlayerPos(0, 1);
 				break;
 			case _SPACE_:
 				break;
@@ -44,9 +45,18 @@ void displayGame()
 				break;
 			}
 		}
-
+		
+		if (flag == _STAGE_CLEAR_)
+			break;
+			
 		renderScreenToBuffer(buffer);
 		printScreen(buffer);
+	}
+	
+	switch(flag)
+	{
+		case _STAGE_CLEAR_:
+			return _STAGE_CLEAR_;
 	}
 }
 

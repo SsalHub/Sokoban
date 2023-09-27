@@ -9,7 +9,7 @@
 
 typedef enum ConsoleColor
 {
-	_BLACK_,
+	_BLACK_ = 0,
 	_BLUE_,
 	_GREEN_,
 	_SKYBLUE_,
@@ -26,6 +26,14 @@ typedef enum ConsoleColor
 	_BRIGHTYELLOW_,
 	_BRIGHTWHITE_,
 } ConsoleColor;
+
+typedef enum Flag
+{
+	_TRUE_ = 0,
+	_FALSE_,
+	_BLOCKED_,
+	_STAGE_CLEAR_,
+} Flag;
 
 typedef enum GameObject
 {
@@ -57,14 +65,17 @@ typedef struct MapData
 {
 	int width;
 	int height;
+	int houseCount;
 	int map[_MAP_HEIGHT_][_MAP_WIDTH_];
 	int structure[_MAP_HEIGHT_][_MAP_WIDTH_];
+	Position house[_MAP_WIDTH_ * _MAP_HEIGHT_];
 } MapData;
 
 extern HANDLE screenBuffer[2];
 extern int currentScreenBufferIndex;
 extern HANDLE effectBuffer;
 extern HANDLE loadingStageBuffer;
+extern HANDLE stageClearBuffer;
 extern Position player;
 extern MapData mapData;
 
@@ -73,8 +84,10 @@ void loadMainMenu();
 void showLoadingStage();
 void loadStageSelect();
 void setPlayerPos(int, int);
-bool translatePlayerPos(int, int);
-bool pushBomb(int, int);
+Flag translatePlayerPos(int, int);
+Flag pushBomb(int, int);
+Flag pushFilledHouse(int, int);
+void changePositionState(int, int, GameObject);
 bool EqualsWithPlayerPos(int, int);
 void clearScreen();
 void exitGame();
@@ -84,3 +97,4 @@ void releaseScreen();
 void loadMapData();
 void renderScreenToBuffer(char*);
 bool checkClearStage();
+void showClearStage();
