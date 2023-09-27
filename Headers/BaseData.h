@@ -81,7 +81,7 @@ extern MapData mapData;
 
 void initGame();
 void loadMainMenu();
-void showLoadingStage();
+void showLoadingStage(int);
 void loadStageSelect();
 void setPlayerPos(int, int);
 Flag translatePlayerPos(int, int);
@@ -94,7 +94,7 @@ void exitGame();
 void showRedEffect();
 void printScreen(char*);
 void releaseScreen();
-void loadMapData();
+void loadMapData(int);
 void renderScreenToBuffer(char*);
 bool checkClearStage();
 void showClearStage(int);

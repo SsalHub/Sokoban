@@ -78,12 +78,52 @@ void loadMainMenu()
 	loadStageSelect();
 }
 
-void showLoadingStage()
+void showLoadingStage(int stageIndex)
 {
+	ConsoleColor black = _BLACK_, skyblue = _SKYBLUE_, white = _WHITE_;
 	COORD pos = { 0, 0 };
 	DWORD dw;
-	SetConsoleActiveScreenBuffer(loadingStageBuffer);
-	//Sleep(2000);	// 2.0sec
+	char bufferString[_SCREEN_WIDTH_*_SCREEN_HEIGHT_+1];
+	char loadingText[_SCREEN_WIDTH_+1];
+	int i, j, loop;
+	
+	SetConsoleTextAttribute(loadingStageBuffer, black | (skyblue << 4));
+	sprintf(loadingText, "Stage%02d Loading", stageIndex);
+	for (loop = 0; loop < 4; loop++)
+	{
+		strcat(loadingText, " .");
+		bufferString[0] = '\0';
+		for (i = 0; i < _SCREEN_HEIGHT_ ; i++)
+		{
+			if (i == _SCREEN_HEIGHT_ / 2)
+			{
+				for (j = 0; j < (_SCREEN_WIDTH_ - strlen(loadingText)) / 2; j++)
+				{
+					strcat(bufferString, " ");
+				}
+				strcat(bufferString, loadingText);
+				for (j = 0; j < (_SCREEN_WIDTH_ - strlen(loadingText)) / 2; j++)
+				{
+					strcat(bufferString, " ");
+				}
+			}
+			else
+			{
+				for (j = 0; j < _SCREEN_WIDTH_; j++)
+				{
+					strcat(bufferString, " ");
+				}
+			}
+			strcat(bufferString, "\n");
+		}
+		SetConsoleCursorPosition(loadingStageBuffer, pos);
+		WriteFile(loadingStageBuffer, bufferString, strlen(bufferString), &dw, NULL);
+		SetConsoleTextAttribute(loadingStageBuffer, white | (black << 4));
+		
+		/* Change actual screen */
+		SetConsoleActiveScreenBuffer(loadingStageBuffer);
+		Sleep(500);	// 0.5sec
+	}
 	SetConsoleActiveScreenBuffer(screenBuffer[currentScreenBufferIndex]);
 }
 
@@ -95,13 +135,15 @@ void loadStageSelect()
 	stageIndex = 1;
 	while(1)
 	{
-		showLoadingStage();
+		showLoadingStage(stageIndex);
 		
 		//Sleep(2000);	// 2.0sec
 		
+		loadMapData(stageIndex);
 		flag = displayGame(stageIndex);
+		
 		if (flag == _STAGE_CLEAR_)
-			showClearStage(stageIndex);
+			showClearStage(++stageIndex);
 		else
 			break;
 	}
@@ -222,6 +264,7 @@ Flag pushFilledHouse(int houseX, int houseY)
 	{
 		case _BLOCK_:
 		case _FILLED_HOUSE_:
+		case _BOMB_:
 			showRedEffect();
 			return _BLOCKED_;
 			
@@ -305,7 +348,7 @@ void releaseScreen()
 	CloseHandle(screenBuffer[2]);
 }
 
-void loadMapData(char* stageName)
+void loadMapData(int stageIndex)
 {
 	FILE *fp;
 	char fname[16] = "";
@@ -315,7 +358,7 @@ void loadMapData(char* stageName)
 	int i, j, x, y;
 	
 	_getcwd(mapDataPath, 1000);		// path of root of this project directory
-	sprintf(fname, "%s.skb", stageName);
+	sprintf(fname, "Stage%02d.skb", stageIndex);
 	sprintf(mapDataPath, "%s\\Maps\\%s", mapDataPath, fname);
 	
 	fp = fopen(mapDataPath, "r");
@@ -453,20 +496,36 @@ bool checkClearStage()
 
 void showClearStage(int stageIndex)
 {
-	ConsoleColor black = _BLACK_, yellow = _BRIGHTYELLOW_;
+	ConsoleColor black = _BLACK_, yellow = _BRIGHTYELLOW_, white = _WHITE_;
 	COORD pos = { 0, 0 };
 	DWORD dw;
 	char bufferString[_SCREEN_WIDTH_*_SCREEN_HEIGHT_+1];
-	char clearText[_SCREEN_WIDTH+1];
+	char stageClearText[_SCREEN_WIDTH_+1];
 	int i, j;
-	sprintf(clearText, "Stage%2d Loading . . .", stageIndex);
-	bufferString[0] = '\0';
+	
 	SetConsoleTextAttribute(stageClearBuffer, black | (yellow << 4));
+	sprintf(stageClearText, "! Stage%2d Clear !", stageIndex);
+	bufferString[0] = '\0';
 	for (i = 0; i < _SCREEN_HEIGHT_ ; i++)
 	{
-		for (j = 0; j < _SCREEN_WIDTH_; j++)
+		if (i == _SCREEN_HEIGHT_ / 2)
 		{
-			strcat(bufferString, " ");
+			for (j = 0; j < (_SCREEN_WIDTH_ - strlen(stageClearText)) / 2; j++)
+			{
+				strcat(bufferString, " ");
+			}
+			strcat(bufferString, stageClearText);
+			for (j = 0; j < (_SCREEN_WIDTH_ - strlen(stageClearText)) / 2; j++)
+			{
+				strcat(bufferString, " ");
+			}
+		}
+		else
+		{
+			for (j = 0; j < _SCREEN_WIDTH_; j++)
+			{
+				strcat(bufferString, " ");
+			}
 		}
 		strcat(bufferString, "\n");
 	}
@@ -474,10 +533,8 @@ void showClearStage(int stageIndex)
 	WriteFile(stageClearBuffer, bufferString, strlen(bufferString), &dw, NULL);
 	SetConsoleTextAttribute(stageClearBuffer, white | (black << 4));
 	
+	/* Change actual screen */
 	SetConsoleActiveScreenBuffer(stageClearBuffer);
-	
-	sprintf(clearText, "Stage%2d Loading . . .", stageIndex);
-	
-	Sleep(2000);	// 2.0sec
+	Sleep(1500);	// 1.5sec
 	SetConsoleActiveScreenBuffer(screenBuffer[currentScreenBufferIndex]);
 }

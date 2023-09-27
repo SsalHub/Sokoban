@@ -8,12 +8,8 @@
 Flag displayGame(int stageIndex)
 {
 	char buffer[_SCREEN_WIDTH_ * _SCREEN_HEIGHT_];
-	char stage[32] = "";
 	char input;
 	Flag flag;
-	
-	sprintf(stage, "Stage%2d", stageIndex);
-	loadMapData("Stage01");
 	
 	while (1)
 	{
