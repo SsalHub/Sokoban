@@ -100,7 +100,7 @@ bool translatePlayerPos(int x, int y)
 	}
 	
 	/* Check the position where player moved on. */
-	switch (mapData.Map[newY][newX])
+	switch (mapData.map[newY][newX])
 	{
 		case _BLOCK_:
 			showRedEffect();
@@ -124,15 +124,15 @@ bool pushBomb(int bombX, int bombY)
 {
 	int destX = bombX + (bombX - player.x), destY = bombY + (bombY - player.y);
 	
-	switch (mapData.Map[destY][destX])
+	switch (mapData.map[destY][destX])
 	{
 		case _BLOCK_:
 		case _FILLED_HOUSE_:
 			return false;
 			
 		case _EMPTY_HOUSE_:
-			mapData.Map[bombY][bombX] = _NONE_;
-			mapData.Map[destY][destX] = _FILLED_HOUSE_;
+			mapData.map[bombY][bombX] = _NONE_;
+			mapData.map[destY][destX] = _FILLED_HOUSE_;
 			if (checkClearStage())
 			{
 				/* Stage Clear Action */
@@ -142,8 +142,8 @@ bool pushBomb(int bombX, int bombY)
 			}
 		
 		case _NONE_:
-			mapData.Map[bombY][bombX] = _NONE_;
-			mapData.Map[destY][destX] = _BOMB_;
+			mapData.map[bombY][bombX] = _NONE_;
+			mapData.map[destY][destX] = _BOMB_;
 			break;
 	}
 	
@@ -221,23 +221,19 @@ void loadMapData(char* stageName)
 	mapData.width = atoi(strtok(buffer, " "));
 	mapData.height = atoi(strtok(buffer, " "));
 	
-	/* Line 2 in .skb file : Position of Player. X and Y */
-	fgets(buffer, _MAP_WIDTH_+1, fp);
-	x = atoi(strtok(buffer, " "));
-	y = atoi(strtok(buffer, " "));
-	setPlayerPos(x, y);
-	
 	for (i = 0; i < mapData.height; i++)
 	{
 		fgets(buffer, _MAP_WIDTH_+1, fp);
 		
 		for (j = 0; j < mapData.width; j++)
 		{
-			mapData.Map[i][j] = buffer[j] - 48;
-			/* Keep _EMPTY_HOUSE_ data. empty house's position data is necessary even Map data keeps changing. */
-			
-			// something
-			
+			mapData.structure[i][j] = buffer[j] - 48;
+			if (buffer[j] - 48 == _PLAYER_)
+			{
+				setPlayerPos(j, i);
+				continue;
+			}
+			mapData.map[i][j] = buffer[j] - 48;
 		}
 	}	
 }
@@ -282,9 +278,15 @@ void renderScreenToBuffer(char* buffer)
 				strcat(buffer, "¡Ù");
 				continue;
 			}
+			
+			if (mapData.structure[i][j] == _EMPTY_HOUSE_)
+			{
+				strcat(buffer, "¢»");
+				continue;
+			}
 
 			/* GameObjects */
-			switch (mapData.Map[i][j])
+			switch (mapData.map[i][j])
 			{
 				case _NONE_:
 					strcat(buffer, "  ");
@@ -298,10 +300,7 @@ void renderScreenToBuffer(char* buffer)
 					strcat(buffer, "£À");
 					break;
 					
-				case _EMPTY_HOUSE_:
-					strcat(buffer, "¢»");
-					break;
-					
+				case _EMPTY_HOUSE_:// ÀÛ¾÷Áß 
 				case _FILLED_HOUSE_:
 					strcat(buffer, "¢¼");
 					break;
@@ -334,7 +333,7 @@ bool checkClearStage()
 	{
 		for (j = 0; j < mapData.width; j++)
 		{
-			if (mapData.Map[i][j] == _EMPTY_HOUSE_)		
+			if (mapData.map[i][j] == _EMPTY_HOUSE_)		
 				return false;
 		}
 	}

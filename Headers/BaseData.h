@@ -4,8 +4,8 @@
 
 #define _SCREEN_WIDTH_ 120
 #define _SCREEN_HEIGHT_ 30
-#define _MAP_WIDTH_ 20
-#define _MAP_HEIGHT_ 20
+#define _MAP_WIDTH_ 50
+#define _MAP_HEIGHT_ 30
 
 typedef enum ConsoleColor
 {
@@ -29,11 +29,12 @@ typedef enum ConsoleColor
 
 typedef enum GameObject
 {
-	_NONE_ = 0,
-	_BLOCK_ = 1,
-	_BOMB_ = 2,
-	_EMPTY_HOUSE_ = 3,
-	_FILLED_HOUSE_ = 4,
+	_NONE_ 			= 0,
+	_PLAYER_ 		= 1,
+	_BLOCK_			= 2,
+	_BOMB_			= 3,
+	_EMPTY_HOUSE_	= 4,
+	_FILLED_HOUSE_	= 5,
 } GameObject;
 
 typedef enum InputType
@@ -56,7 +57,8 @@ typedef struct MapData
 {
 	int width;
 	int height;
-	int Map[_MAP_HEIGHT_][_MAP_WIDTH_];
+	int map[_MAP_HEIGHT_][_MAP_WIDTH_];
+	int structure[_MAP_HEIGHT_][_MAP_WIDTH_];
 } MapData;
 
 extern HANDLE screenBuffer[2];
