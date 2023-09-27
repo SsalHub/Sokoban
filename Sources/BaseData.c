@@ -107,11 +107,11 @@ bool translatePlayerPos(int x, int y)
 			return false;
 			
 		case _BOMB_:
+		case _FILLED_HOUSE_:
 			if (!pushBomb(newX, newY)) return;
 			
 		case _NONE_:
 		case _EMPTY_HOUSE_:
-		case _FILLED_HOUSE_:
 			player.x = newX;
 			player.y = newY;
 			break;
@@ -127,6 +127,7 @@ bool pushBomb(int bombX, int bombY)
 	switch (mapData.Map[destY][destX])
 	{
 		case _BLOCK_:
+		case _FILLED_HOUSE_:
 			return false;
 			
 		case _EMPTY_HOUSE_:
@@ -141,7 +142,8 @@ bool pushBomb(int bombX, int bombY)
 			}
 		
 		case _NONE_:
-		case _FILLED_HOUSE_:
+			mapData.Map[bombY][bombX] = _NONE_;
+			mapData.Map[destY][destX] = _BOMB_;
 			break;
 	}
 	
@@ -199,6 +201,7 @@ void loadMapData(char* stageName)
 	char fname[16] = "";
 	char mapDataPath[1000] = "";
 	char buffer[_MAP_WIDTH_+1] = "";
+	char* token;
 	int i, j, x, y;
 	
 	_getcwd(mapDataPath, 1000);		// path of root of this project directory
@@ -213,17 +216,15 @@ void loadMapData(char* stageName)
 		exit(1);
 	}
 		
-	/* Line 1~2 in .skb file : Width and Height of Map */
+	/* Line 1 in .skb file : Width and Height of Map */
 	fgets(buffer, _MAP_WIDTH_+1, fp);
-	mapData.width = atoi(buffer);
-	fgets(buffer, _MAP_WIDTH_+1, fp);
-	mapData.height = atoi(buffer);
+	mapData.width = atoi(strtok(buffer, " "));
+	mapData.height = atoi(strtok(buffer, " "));
 	
-	/* Line 3~4 in .skb file : Position of Player. X and Y */
+	/* Line 2 in .skb file : Position of Player. X and Y */
 	fgets(buffer, _MAP_WIDTH_+1, fp);
-	x = atoi(buffer);
-	fgets(buffer, _MAP_WIDTH_+1, fp);
-	y = atoi(buffer);
+	x = atoi(strtok(buffer, " "));
+	y = atoi(strtok(buffer, " "));
 	setPlayerPos(x, y);
 	
 	for (i = 0; i < mapData.height; i++)
@@ -233,6 +234,10 @@ void loadMapData(char* stageName)
 		for (j = 0; j < mapData.width; j++)
 		{
 			mapData.Map[i][j] = buffer[j] - 48;
+			/* Keep _EMPTY_HOUSE_ data. empty house's position data is necessary even Map data keeps changing. */
+			
+			// something
+			
 		}
 	}	
 }
