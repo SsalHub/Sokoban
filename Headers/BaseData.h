@@ -40,9 +40,9 @@ typedef enum GameObject
 	_NONE_ 			= 0,
 	_PLAYER_ 		= 1,
 	_BLOCK_			= 2,
-	_BOMB_			= 3,
-	_EMPTY_HOUSE_	= 4,
-	_FILLED_HOUSE_	= 5,
+	_BALL_			= 3,
+	_EMPTY_BOX_	= 4,
+	_FILLED_BOX_	= 5,
 } GameObject;
 
 typedef enum InputType
@@ -72,7 +72,7 @@ typedef struct MapData
 } MapData;
 
 extern int currentScreenBufferIndex;
-extern HANDLE screenBuffer[2];
+extern HANDLE stageScreenBuffer[2];
 extern HANDLE effectBuffer;
 extern HANDLE loadingStageBuffer[2];
 extern HANDLE stageClearBuffer[2];
@@ -86,8 +86,8 @@ void showLoadingStage(int);
 void loadStageSelect();
 void setPlayerPos(int, int);
 Flag translatePlayerPos(int, int);
-Flag pushBomb(int, int);
-Flag pushFilledHouse(int, int);
+Flag pushBall(int, int);
+Flag pushFilledBox(int, int);
 void changePositionState(int, int, GameObject);
 bool EqualsWithPlayerPos(int, int);
 void clearScreen();

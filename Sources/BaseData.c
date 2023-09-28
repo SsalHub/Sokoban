@@ -6,7 +6,7 @@
 #include <direct.h>
 
 int currentScreenBufferIndex;
-HANDLE screenBuffer[2];
+HANDLE stageScreenBuffer[2];
 HANDLE effectBuffer;
 HANDLE loadingStageBuffer[2];
 HANDLE stageClearBuffer[2];
@@ -20,27 +20,35 @@ void initGame()
 	system(screenInitCommand);
 	SetConsoleTitle("Sokoban : 19 Song JaeUk in Hansung Univ.");
 	
+	/* Cursor */
+	CONSOLE_CURSOR_INFO cursor;
+	cursor.dwSize = 1;
+	cursor.bVisible = false;
+	
+	/* Font */
+//	CONSOLE_FONT_INFOEX font = {sizeof(font)};
+//    font.dwFontSize.X = 15;
+//    font.dwFontSize.Y = 30;
+	
 	currentScreenBufferIndex = 0;
-	screenBuffer[0] 			= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	screenBuffer[1] 			= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	stageScreenBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	stageScreenBuffer[1] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	effectBuffer 				= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	loadingStageBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	loadingStageBuffer[1] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	stageClearBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	stageClearBuffer[1] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-
-	CONSOLE_CURSOR_INFO cursor;
-	cursor.dwSize = 1;
-	cursor.bVisible = false;
 	
-	SetConsoleCursorInfo(screenBuffer[0], &cursor);
-	SetConsoleCursorInfo(screenBuffer[1], &cursor);
+//    SetCurrentConsoleFontEx(stageScreenBuffer[0], FALSE, &font);
+//    SetCurrentConsoleFontEx(stageScreenBuffer[1], FALSE, &font);
+	SetConsoleCursorInfo(stageScreenBuffer[0], &cursor);
+	SetConsoleCursorInfo(stageScreenBuffer[1], &cursor);
 	SetConsoleCursorInfo(effectBuffer, &cursor);
 	SetConsoleCursorInfo(loadingStageBuffer[0], &cursor);
 	SetConsoleCursorInfo(loadingStageBuffer[1], &cursor);
 	SetConsoleCursorInfo(stageClearBuffer[0], &cursor);
 	SetConsoleCursorInfo(stageClearBuffer[1], &cursor);
-	
+
 	initEffectScreen();
 }
 
@@ -84,7 +92,7 @@ void showLoadingStage(int stageIndex)
 	SetConsoleTextAttribute(loadingStageBuffer[0], black | (skyblue << 4));
 	SetConsoleTextAttribute(loadingStageBuffer[1], black | (skyblue << 4));
 	sprintf(loadingText, "Stage%02d Loading", stageIndex);
-	for (loop = 0; loop < 6; loop++)
+	for (loop = 0; loop < 4; loop++)
 	{
 		strcat(loadingText, " .");
 		bufferString[0] = '\0';
@@ -114,6 +122,7 @@ void showLoadingStage(int stageIndex)
 		SetConsoleCursorPosition(loadingStageBuffer[bufferIndex], pos);
 		WriteFile(loadingStageBuffer[bufferIndex], bufferString, strlen(bufferString), &dw, NULL);
 		Sleep(300);	// 0.3sec
+		
 		/* Change actual screen */
 		SetConsoleActiveScreenBuffer(loadingStageBuffer[bufferIndex]);
 		bufferIndex = !bufferIndex;
@@ -179,37 +188,35 @@ Flag translatePlayerPos(int x, int y)
 			showRedEffect();
 			return _BLOCKED_;
 			
-		case _FILLED_HOUSE_:
-			if (pushFilledHouse(newX, newY) == _BLOCKED_) 
+		case _FILLED_BOX_:
+			if (pushFilledBox(newX, newY) == _BLOCKED_) 
 				return _BLOCKED_;
 			else
 				break;
-		case _BOMB_:
-			switch (pushBomb(newX, newY))
+		case _BALL_:
+			switch (pushBall(newX, newY))
 			{
 				case _TRUE_:
 					break;
 				case _BLOCKED_:
 					return _BLOCKED_;
 				case _STAGE_CLEAR_:
-					player.x = newX;
-					player.y = newY;
+					setPlayerPos(newX, newY);
 					return _STAGE_CLEAR_;
 			}
 			
 		case _NONE_:
-		case _EMPTY_HOUSE_:
+		case _EMPTY_BOX_:
 			break;
 	}
 	
-	player.x = newX;
-	player.y = newY;
+	setPlayerPos(newX, newY);
 	return _TRUE_;
 }
 
-Flag pushBomb(int bombX, int bombY)
+Flag pushBall(int ballX, int ballY)
 {
-	int destX = bombX + (bombX - player.x), destY = bombY + (bombY - player.y);
+	int destX = ballX + (ballX - player.x), destY = ballY + (ballY - player.y);
 	
 	/* If tried to push out of the Map */
 	if (destX < 0 || mapData.width <= destX)
@@ -226,27 +233,27 @@ Flag pushBomb(int bombX, int bombY)
 	switch (mapData.map[destY][destX])
 	{
 		case _BLOCK_:
-		case _FILLED_HOUSE_:
+		case _FILLED_BOX_:
 			showRedEffect();
 			return _BLOCKED_;
 			
-		case _EMPTY_HOUSE_:
-			changePositionState(destX, destY, _FILLED_HOUSE_);
+		case _EMPTY_BOX_:
+			changePositionState(destX, destY, _FILLED_BOX_);
 			if (checkClearStage()) return _STAGE_CLEAR_;
 			break;
 		
 		case _NONE_:
-			changePositionState(destX, destY, _BOMB_);
+			changePositionState(destX, destY, _BALL_);
 			break;
 	}
 	
-	changePositionState(bombX, bombY, _NONE_);
+	changePositionState(ballX, ballY, _NONE_);
 	return _TRUE_;
 }
 
-Flag pushFilledHouse(int houseX, int houseY)
+Flag pushFilledBox(int boxX, int boxY)
 {
-	int destX = houseX + (houseX - player.x), destY = houseY + (houseY - player.y);
+	int destX = boxX + (boxX - player.x), destY = boxY + (boxY - player.y);
 	
 	/* If tried to push out of the Map */
 	if (destX < 0 || mapData.width <= destX)
@@ -263,24 +270,23 @@ Flag pushFilledHouse(int houseX, int houseY)
 	switch (mapData.map[destY][destX])
 	{
 		case _BLOCK_:
-		case _FILLED_HOUSE_:
-		case _BOMB_:
+		case _FILLED_BOX_:
+		case _BALL_:
 			showRedEffect();
 			return _BLOCKED_;
 			
-		case _EMPTY_HOUSE_:
-			changePositionState(destX, destY, _FILLED_HOUSE_);
+		case _EMPTY_BOX_:
+			changePositionState(destX, destY, _FILLED_BOX_);
 			break;
 		
 		case _NONE_:
-			changePositionState(destX, destY, _BOMB_);
+			changePositionState(destX, destY, _BALL_);
 			break;
 	}
 	
-	changePositionState(houseX, houseY, _EMPTY_HOUSE_);
+	changePositionState(boxX, boxY, _EMPTY_BOX_);
 	return _TRUE_;
 }
-
 
 void changePositionState(int x, int y, GameObject o)
 {
@@ -290,14 +296,14 @@ void changePositionState(int x, int y, GameObject o)
 	2. Empty House (not on 'mapData.map[][]' array, 'mapData.structure[][]')
 	3. etc.. (like _NONE_)
 	*/
-	if (o == _BOMB_ || o == _FILLED_HOUSE_)
+	if (o == _BALL_ || o == _FILLED_BOX_)
 	{
 		mapData.map[y][x] = o;
 		return;
 	}
-	if (mapData.structure[y][x] == _EMPTY_HOUSE_)
+	if (mapData.structure[y][x] == _EMPTY_BOX_)
 	{
-		mapData.map[y][x] = _EMPTY_HOUSE_;
+		mapData.map[y][x] = _EMPTY_BOX_;
 		return;
 	}
 	mapData.map[y][x] = o;
@@ -314,7 +320,7 @@ void clearScreen()		// Clean current screen buffer.
 {
 	COORD pos = { 0, 0 };
 	DWORD dw;
-	FillConsoleOutputCharacter(screenBuffer[currentScreenBufferIndex], ' ', _SCREEN_WIDTH_ * _SCREEN_HEIGHT_, pos, &dw);
+	FillConsoleOutputCharacter(stageScreenBuffer[currentScreenBufferIndex], ' ', _SCREEN_WIDTH_ * _SCREEN_HEIGHT_, pos, &dw);
 }
 
 void exitGame()
@@ -328,23 +334,23 @@ void showRedEffect()
 {
 	SetConsoleActiveScreenBuffer(effectBuffer);
 	Sleep(10); // 0.05sec
-	SetConsoleActiveScreenBuffer(screenBuffer[currentScreenBufferIndex]);
+	SetConsoleActiveScreenBuffer(stageScreenBuffer[currentScreenBufferIndex]);
 }
 
 void printScreen(char* s)
 {
 	COORD pos = { 0, 0 };
 	DWORD dw;
-	SetConsoleCursorPosition(screenBuffer[currentScreenBufferIndex], pos);
-	WriteFile(screenBuffer[currentScreenBufferIndex], s, strlen(s), &dw, NULL);
-	SetConsoleActiveScreenBuffer(screenBuffer[currentScreenBufferIndex]);
+	SetConsoleCursorPosition(stageScreenBuffer[currentScreenBufferIndex], pos);
+	WriteFile(stageScreenBuffer[currentScreenBufferIndex], s, strlen(s), &dw, NULL);
+	SetConsoleActiveScreenBuffer(stageScreenBuffer[currentScreenBufferIndex]);
 	currentScreenBufferIndex = !currentScreenBufferIndex;
 }
 
 void releaseScreen()
 {
-	CloseHandle(screenBuffer[0]);
-	CloseHandle(screenBuffer[1]);
+	CloseHandle(stageScreenBuffer[0]);
+	CloseHandle(stageScreenBuffer[1]);
 	CloseHandle(effectBuffer);
 	CloseHandle(loadingStageBuffer[0]);
 	CloseHandle(loadingStageBuffer[1]);
@@ -376,7 +382,7 @@ void loadMapData(int stageIndex)
 	/* Line 1 in .skb file : Width and Height of Map */
 	fgets(buffer, _MAP_WIDTH_+1, fp);
 	mapData.width = atoi(strtok(buffer, " "));
-	mapData.height = atoi(strtok(buffer, " "));
+	mapData.height = atoi(buffer);
 	
 	mapData.houseCount = 0;
 	for (i = 0; i < mapData.height; i++)
@@ -391,7 +397,7 @@ void loadMapData(int stageIndex)
 				case _PLAYER_:
 					setPlayerPos(j, i);
 					break;
-				case _EMPTY_HOUSE_:
+				case _EMPTY_BOX_:
 					mapData.house[mapData.houseCount].x = j;
 					mapData.house[mapData.houseCount].y = i;
 					mapData.houseCount++;
@@ -407,6 +413,7 @@ void renderScreenToBuffer(char* buffer)
 {
 	int i, j;
 	char align[_SCREEN_WIDTH_] = "";
+	char block[3] = "¡à";
 	
 	clearScreen();
 	
@@ -424,7 +431,7 @@ void renderScreenToBuffer(char* buffer)
 	strcat(buffer, align);
 	for (i = 0; i < mapData.width+2; i++)
 	{
-		strcat(buffer, "!!");
+		strcat(buffer, block);
 	}
 	strcat(buffer, "\n");
 
@@ -432,7 +439,7 @@ void renderScreenToBuffer(char* buffer)
 	{
 		/* Outside(border) of Map */
 		strcat(buffer, align);
-		strcat(buffer, "!!");
+		strcat(buffer, block);
 
 		/* Inside */
 		for (j = 0; j < mapData.width; j++)
@@ -452,18 +459,18 @@ void renderScreenToBuffer(char* buffer)
 					break;
 					
 				case _BLOCK_:
-					strcat(buffer, "[]");
+					strcat(buffer, block);
 					break;
 					
-				case _BOMB_:
-					strcat(buffer, "£À");
+				case _BALL_:
+					strcat(buffer, "¡Ý");
 					break;
 					
-				case _EMPTY_HOUSE_:
+				case _EMPTY_BOX_:
 					strcat(buffer, "¢»");
 					break;
 					
-				case _FILLED_HOUSE_:
+				case _FILLED_BOX_:
 					strcat(buffer, "¢¼");
 					break;
 					
@@ -473,7 +480,7 @@ void renderScreenToBuffer(char* buffer)
 		}
 
 		/* Outside(border) of Map */
-		strcat(buffer, "!!");
+		strcat(buffer, block);
 
 		strcat(buffer, "\n");
 	}
@@ -482,7 +489,7 @@ void renderScreenToBuffer(char* buffer)
 	strcat(buffer, align);
 	for (i = 0; i < mapData.width+2; i++)
 	{
-		strcat(buffer, "!!");
+		strcat(buffer, block);
 	}
 	strcat(buffer, "\n");
 }
@@ -492,7 +499,7 @@ bool checkClearStage()
 	int i;
 	for (i = 0; i < mapData.houseCount; i++)
 	{
-		if (mapData.map[mapData.house[i].y][mapData.house[i].x] != _FILLED_HOUSE_)
+		if (mapData.map[mapData.house[i].y][mapData.house[i].x] != _FILLED_BOX_)
 			return false;
 	}
 	return true;
@@ -510,7 +517,7 @@ void showClearStage(int stageIndex)
 	SetConsoleTextAttribute(stageClearBuffer[0], black | (yellow << 4));
 	SetConsoleTextAttribute(stageClearBuffer[1], black | (yellow << 4));
 	sprintf(stageClearText, "Stage%02d Clear", stageIndex);
-	for (loop = 0; loop < 6; loop++)
+	for (loop = 0; loop < 4; loop++)
 	{
 		strcat(stageClearText, " !");
 		bufferString[0] = '\0';

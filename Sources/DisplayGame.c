@@ -42,11 +42,12 @@ Flag displayGame(int stageIndex)
 			}
 		}
 		
-		if (flag == _STAGE_CLEAR_)
-			break;
 			
 		renderScreenToBuffer(buffer);
 		printScreen(buffer);
+		
+		if (flag == _STAGE_CLEAR_)
+			break;
 	}
 	
 	switch(flag)
