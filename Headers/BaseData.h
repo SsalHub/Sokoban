@@ -33,6 +33,7 @@ typedef enum Flag
 	_FALSE_,
 	_BLOCKED_,
 	_STAGE_CLEAR_,
+	_STAGE_RESTART_,
 } Flag;
 
 typedef enum GameObject
@@ -41,7 +42,7 @@ typedef enum GameObject
 	_PLAYER_ 		= 1,
 	_BLOCK_			= 2,
 	_BALL_			= 3,
-	_EMPTY_BOX_	= 4,
+	_EMPTY_BOX_		= 4,
 	_FILLED_BOX_	= 5,
 } GameObject;
 
@@ -53,6 +54,8 @@ typedef enum InputType
 	_RIGHT_ = 77,
 	_UP_ = 72,
 	_DOWN_ = 80,
+	_UPPER_R_ = 82,
+	_LOWER_R_ = 114,
 } InputType;
 
 typedef struct Position
@@ -74,6 +77,7 @@ typedef struct MapData
 extern int currentScreenBufferIndex;
 extern HANDLE stageScreenBuffer[2];
 extern HANDLE effectBuffer;
+extern HANDLE stageRestartBuffer;
 extern HANDLE loadingStageBuffer[2];
 extern HANDLE stageClearBuffer[2];
 extern Position player;
@@ -81,6 +85,7 @@ extern MapData mapData;
 
 void initGame();
 void initEffectScreen();
+void initStageRestartScreen();
 void loadMainMenu();
 void showLoadingStage(int);
 void loadStageSelect();
@@ -99,3 +104,4 @@ void loadMapData(int);
 void renderScreenToBuffer(char*);
 bool checkClearStage();
 void showClearStage(int);
+Flag showStageRestartScreen();

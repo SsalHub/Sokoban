@@ -8,6 +8,7 @@
 int currentScreenBufferIndex;
 HANDLE stageScreenBuffer[2];
 HANDLE effectBuffer;
+HANDLE stageRestartBuffer;
 HANDLE loadingStageBuffer[2];
 HANDLE stageClearBuffer[2];
 Position player;
@@ -34,6 +35,7 @@ void initGame()
 	stageScreenBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	stageScreenBuffer[1] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	effectBuffer 				= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	stageRestartBuffer 			= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	loadingStageBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	loadingStageBuffer[1] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	stageClearBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
@@ -44,12 +46,14 @@ void initGame()
 	SetConsoleCursorInfo(stageScreenBuffer[0], &cursor);
 	SetConsoleCursorInfo(stageScreenBuffer[1], &cursor);
 	SetConsoleCursorInfo(effectBuffer, &cursor);
+	SetConsoleCursorInfo(stageRestartBuffer, &cursor);
 	SetConsoleCursorInfo(loadingStageBuffer[0], &cursor);
 	SetConsoleCursorInfo(loadingStageBuffer[1], &cursor);
 	SetConsoleCursorInfo(stageClearBuffer[0], &cursor);
 	SetConsoleCursorInfo(stageClearBuffer[1], &cursor);
 
 	initEffectScreen();
+	initStageRestartScreen();
 }
 
 void initEffectScreen()
@@ -75,6 +79,60 @@ void initEffectScreen()
 	SetConsoleTextAttribute(effectBuffer, white | (black << 4));
 }
 
+void initStageRestartScreen()
+{
+	ConsoleColor black = _BLACK_, green = _BRIGHTGREEN_, white = _WHITE_;
+	COORD pos = { 0, 0 };
+	DWORD dw;
+	char bufferString[_SCREEN_WIDTH_*_SCREEN_HEIGHT_+1];
+	char title[64] 		= "";
+	char content[64] 	= "";
+	int i, j;
+	
+	sprintf(title, "이 스테이지를 처음부터 다시 진행하시겠습니까?");
+	sprintf(content, "← 돌아가기        처음부터 다시하기 →");
+	bufferString[0] = '\0';
+	SetConsoleTextAttribute(stageRestartBuffer, black | (green << 4));
+	for (i = 0; i < _SCREEN_HEIGHT_; i++)
+	{
+		if (i == (_SCREEN_HEIGHT_ / 2 - 2))
+		{
+			for (j = 0; j < (_SCREEN_WIDTH_-strlen(title))/2; j++)
+			{
+				strcat(bufferString, " ");
+			}
+			strcat(bufferString, title);
+			for (j = 0; j < (_SCREEN_WIDTH_-strlen(title))/2; j++)
+			{
+				strcat(bufferString, " ");
+			}
+		}
+		else if (i == (_SCREEN_HEIGHT_ / 2 + 2))
+		{
+			for (j = 0; j < (_SCREEN_WIDTH_-strlen(content))/2; j++)
+			{
+				strcat(bufferString, " ");
+			}
+			strcat(bufferString, content);
+			for (j = 0; j < (_SCREEN_WIDTH_-strlen(content))/2; j++)
+			{
+				strcat(bufferString, " ");
+			}
+		}
+		else
+		{
+			for (j = 0; j < _SCREEN_WIDTH_; j++)
+			{
+				strcat(bufferString, " ");
+			}
+		}
+		strcat(bufferString, "\n");
+	}
+	SetConsoleCursorPosition(stageRestartBuffer, pos);
+	WriteFile(stageRestartBuffer, bufferString, strlen(bufferString), &dw, NULL);
+	SetConsoleTextAttribute(stageRestartBuffer, white | (black << 4));
+}
+
 void loadMainMenu()
 {
 	loadStageSelect();
@@ -92,7 +150,7 @@ void showLoadingStage(int stageIndex)
 	SetConsoleTextAttribute(loadingStageBuffer[0], black | (skyblue << 4));
 	SetConsoleTextAttribute(loadingStageBuffer[1], black | (skyblue << 4));
 	sprintf(loadingText, "Stage%02d Loading", stageIndex);
-	for (loop = 0; loop < 4; loop++)
+	for (loop = 0; loop < 3; loop++)
 	{
 		strcat(loadingText, " .");
 		bufferString[0] = '\0';
@@ -151,10 +209,17 @@ void loadStageSelect()
 		loadMapData(stageIndex);
 		flag = displayGame(stageIndex);
 		
-		if (flag == _STAGE_CLEAR_)
-			showClearStage(stageIndex++);
-		else
-			break;
+		switch (flag)
+		{
+			case _STAGE_CLEAR_:
+				showClearStage(stageIndex++);
+				break;
+			case _STAGE_RESTART_:
+				/* Get back to loading screen without increasing stageIndex. */
+				break;	
+			default:
+				break;
+		}
 	}
 }
 
@@ -517,7 +582,7 @@ void showClearStage(int stageIndex)
 	SetConsoleTextAttribute(stageClearBuffer[0], black | (yellow << 4));
 	SetConsoleTextAttribute(stageClearBuffer[1], black | (yellow << 4));
 	sprintf(stageClearText, "Stage%02d Clear", stageIndex);
-	for (loop = 0; loop < 4; loop++)
+	for (loop = 0; loop < 5; loop++)
 	{
 		strcat(stageClearText, " !");
 		bufferString[0] = '\0';
@@ -553,4 +618,28 @@ void showClearStage(int stageIndex)
 	}
 	SetConsoleTextAttribute(stageClearBuffer[0], white | (black << 4));
 	SetConsoleTextAttribute(stageClearBuffer[1], white | (black << 4));
+}
+
+Flag showStageRestartScreen()
+{
+	char input;
+	
+	SetConsoleActiveScreenBuffer(stageRestartBuffer);
+	while (1)
+	{
+		if (_kbhit())
+		{
+			input = _getch();
+			switch (input)
+			{
+				case _LEFT_:
+					return _FALSE_;
+				case _RIGHT_:
+					return _STAGE_RESTART_;
+				default:
+					break;
+			}
+		}
+	}
+	return _FALSE_;
 }
