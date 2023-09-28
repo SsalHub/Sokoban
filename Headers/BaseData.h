@@ -76,10 +76,10 @@ typedef struct MapData
 
 extern int currentScreenBufferIndex;
 extern HANDLE stageScreenBuffer[2];
-extern HANDLE effectBuffer;
-extern HANDLE stageRestartBuffer;
 extern HANDLE loadingStageBuffer[2];
 extern HANDLE stageClearBuffer[2];
+extern HANDLE effectBuffer;
+extern HANDLE stageRestartBuffer;
 extern Position player;
 extern MapData mapData;
 
@@ -99,6 +99,7 @@ void clearScreen();
 void exitGame();
 void showRedEffect();
 void printScreen(char*);
+void printPlayer();
 void releaseScreen();
 void loadMapData(int);
 void renderScreenToBuffer(char*);
