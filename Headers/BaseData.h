@@ -1,4 +1,5 @@
 #pragma once
+
 #include <stdbool.h>
 #include <Windows.h>
 
@@ -74,35 +75,19 @@ typedef struct MapData
 	Position house[_MAP_WIDTH_ * _MAP_HEIGHT_];
 } MapData;
 
-extern int currentScreenBufferIndex;
-extern HANDLE stageScreenBuffer[2];
-extern HANDLE loadingStageBuffer[2];
-extern HANDLE stageClearBuffer[2];
-extern HANDLE effectBuffer;
-extern HANDLE stageRestartBuffer;
 extern Position player;
 extern MapData mapData;
 
 void initGame();
-void initEffectScreen();
-void initStageRestartScreen();
-void loadMainMenu();
-void showLoadingStage(int);
-void loadStageSelect();
 void setPlayerPos(int, int);
 Flag translatePlayerPos(int, int);
 Flag pushBall(int, int);
 Flag pushFilledBox(int, int);
 void changePositionState(int, int, GameObject);
 bool EqualsWithPlayerPos(int, int);
-void clearScreen();
 void exitGame();
-void showRedEffect();
-void printScreen(char*);
-void printPlayer();
-void releaseScreen();
 void loadMapData(int);
-void renderScreenToBuffer(char*);
+void renderStageMap(char*);
 bool checkClearStage();
-void showClearStage(int);
-Flag showStageRestartScreen();
+
+void fortestfunc();

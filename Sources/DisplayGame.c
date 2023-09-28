@@ -4,16 +4,17 @@
 #include <windows.h>
 
 #include "../Headers/BaseData.h"
+#include "../Headers/ScreenBuffer.h"
 
 Flag displayGame(int stageIndex)
 {
-	char buffer[_SCREEN_WIDTH_ * _SCREEN_HEIGHT_];
+	char bufferString[_SCREEN_WIDTH_ * _SCREEN_HEIGHT_];
 	char input;
 	Flag flag;
 	
 	while (1)
 	{
-		buffer[0] = '\0';
+		bufferString[0] = '\0';
 		flag = _FALSE_;
 
 		if (_kbhit())
@@ -49,10 +50,11 @@ Flag displayGame(int stageIndex)
 		
 		if (flag == _STAGE_RESTART_)
 			break;
-			
-		renderScreenToBuffer(buffer);
-		printScreen(buffer);
 		
+		/* Render and Print Stage(= map) data on bufferString(= char* bufferString). */
+		renderStageMap(bufferString);
+		printScreen(getScreenBuffer(_STAGE_SCREEN_), bufferString);
+			
 		if (flag == _STAGE_CLEAR_)
 			break;
 	}

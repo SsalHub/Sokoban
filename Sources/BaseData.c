@@ -1,22 +1,25 @@
-#include "../Headers/BaseData.h"
-
 #include <stdio.h>
 #include <stdlib.h>
-#include <windows.h>
+#include <Windows.h>
 #include <direct.h>
 
-int currentScreenBufferIndex;
-HANDLE stageScreenBuffer[2];
-HANDLE loadingStageBuffer[2];
-HANDLE stageClearBuffer[2];
-HANDLE effectBuffer;
-HANDLE stageRestartBuffer;
+#include "../Headers/BaseData.h"
+#include "../Headers/ScreenBuffer.h"
+#include "../Headers/ExceptionHandler.h"
+
 Position player;
 MapData mapData;
+
+void fortestfunc()
+{
+	printf("hi"); exit(0);
+}
 
 void initGame()
 {
 	char screenInitCommand[50] = "";
+	int i;
+	
 	sprintf(screenInitCommand, "mode con:cols=%d lines=%d", _SCREEN_WIDTH_, _SCREEN_HEIGHT_);
 	system(screenInitCommand);
 	SetConsoleTitle("Sokoban : 19 Song JaeUk in Hansung Univ.");
@@ -31,200 +34,42 @@ void initGame()
 //    font.dwFontSize.X = 15;
 //    font.dwFontSize.Y = 30;
 	
-	currentScreenBufferIndex = 0;
-	stageScreenBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	stageScreenBuffer[1] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	loadingStageBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	loadingStageBuffer[1] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	stageClearBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	stageClearBuffer[1] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	effectBuffer 				= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	stageRestartBuffer 			= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	for (i = 0; i < screenBufferLength; i++)
+	{
+		screenBuffer[i].currentIndex = 0;
+		screenBuffer[i].buffer[0] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+		SetConsoleCursorInfo(screenBuffer[i].buffer[0], &cursor);
+		screenBuffer[i].buffer[1] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+		SetConsoleCursorInfo(screenBuffer[i].buffer[1], &cursor);
+	}
+	
+//	currentScreenBufferIndex = 0;
+//	stageScreenBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+//	stageScreenBuffer[1] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+//	loadingStageBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+//	loadingStageBuffer[1] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+//	stageClearBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+//	stageClearBuffer[1] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+//	stageSelectBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+//	stageSelectBuffer[1] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+//	effectBuffer 				= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+//	stageRestartBuffer 			= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	
 //    SetCurrentConsoleFontEx(stageScreenBuffer[0], FALSE, &font);
 //    SetCurrentConsoleFontEx(stageScreenBuffer[1], FALSE, &font);
-	SetConsoleCursorInfo(stageScreenBuffer[0], &cursor);
-	SetConsoleCursorInfo(stageScreenBuffer[1], &cursor);
-	SetConsoleCursorInfo(loadingStageBuffer[0], &cursor);
-	SetConsoleCursorInfo(loadingStageBuffer[1], &cursor);
-	SetConsoleCursorInfo(stageClearBuffer[0], &cursor);
-	SetConsoleCursorInfo(stageClearBuffer[1], &cursor);
-	SetConsoleCursorInfo(effectBuffer, &cursor);
-	SetConsoleCursorInfo(stageRestartBuffer, &cursor);
+//	SetConsoleCursorInfo(stageScreenBuffer[0], &cursor);
+//	SetConsoleCursorInfo(stageScreenBuffer[1], &cursor);
+//	SetConsoleCursorInfo(loadingStageBuffer[0], &cursor);
+//	SetConsoleCursorInfo(loadingStageBuffer[1], &cursor);
+//	SetConsoleCursorInfo(stageClearBuffer[0], &cursor);
+//	SetConsoleCursorInfo(stageClearBuffer[1], &cursor);
+//	SetConsoleCursorInfo(stageSelectBuffer[0], &cursor);
+//	SetConsoleCursorInfo(stageSelectBuffer[1], &cursor);
+//	SetConsoleCursorInfo(effectBuffer, &cursor);
+//	SetConsoleCursorInfo(stageRestartBuffer, &cursor);
 
 	initEffectScreen();
 	initStageRestartScreen();
-}
-
-void initEffectScreen()
-{
-	ConsoleColor black = _BLACK_, red = _BRIGHTRED_, white = _WHITE_;
-	COORD pos = { 0, 0 };
-	DWORD dw;
-	char bufferString[_SCREEN_WIDTH_*_SCREEN_HEIGHT_+1];
-	int i, j;
-	
-	bufferString[0] = '\0';
-	SetConsoleTextAttribute(effectBuffer, white | (red << 4));
-	for (i = 0; i < _SCREEN_HEIGHT_; i++)
-	{
-		for (j = 0; j < _SCREEN_WIDTH_; j++)
-		{
-			strcat(bufferString, " ");
-		}
-		strcat(bufferString, "\n");
-	}
-	SetConsoleCursorPosition(effectBuffer, pos);
-	WriteFile(effectBuffer, bufferString, strlen(bufferString), &dw, NULL);
-	SetConsoleTextAttribute(effectBuffer, white | (black << 4));
-}
-
-void initStageRestartScreen()
-{
-	ConsoleColor black = _BLACK_, green = _BRIGHTGREEN_, white = _WHITE_;
-	COORD pos = { 0, 0 };
-	DWORD dw;
-	char bufferString[(_SCREEN_WIDTH_*2)*_SCREEN_HEIGHT_+1];
-	char title[64] 		= "";
-	char content[64] 	= "";
-	int i, j, tlen, clen;
-	
-	sprintf(title, "이 스테이지를 처음부터 다시 진행하시겠습니까?");
-	sprintf(content, "← 돌아가기        처음부터 다시하기 →");
-	tlen = strlen(title);
-	clen = strlen(content);
-	bufferString[0] = '\0';
-	SetConsoleTextAttribute(stageRestartBuffer, black | (green << 4));
-	for (i = 0; i < _SCREEN_HEIGHT_; i++)
-	{
-		if (i == ((int)(_SCREEN_HEIGHT_ * 0.5) - 2))
-		{
-			for (j = 0; j < (int)((_SCREEN_WIDTH_-tlen)*0.5); j++)
-			{
-				strcat(bufferString, " ");
-			}
-			strcat(bufferString, title);
-			for (j = 0; j < (int)((_SCREEN_WIDTH_-tlen)*0.5+1); j++)
-			{
-				strcat(bufferString, " ");
-			}
-		}
-		else if (i == ((int)(_SCREEN_HEIGHT_ * 0.5) + 2))
-		{
-			for (j = 0; j < (int)((_SCREEN_WIDTH_-clen)*0.5); j++)
-			{
-				strcat(bufferString, " ");
-			}
-			strcat(bufferString, content);
-			for (j = 0; j < (int)((_SCREEN_WIDTH_-clen)*0.5+1); j++)
-			{
-				strcat(bufferString, " ");
-			}
-		}
-		else
-		{
-			for (j = 0; j < _SCREEN_WIDTH_; j++)
-			{
-				strcat(bufferString, " ");
-			}
-		}
-		strcat(bufferString, "\n");
-	}
-	SetConsoleCursorPosition(stageRestartBuffer, pos);
-	WriteFile(stageRestartBuffer, bufferString, strlen(bufferString), &dw, NULL);
-	SetConsoleTextAttribute(stageRestartBuffer, white | (black << 4));
-}
-
-void loadMainMenu()
-{
-	loadStageSelect();
-}
-
-void showLoadingStage(int stageIndex)
-{
-	ConsoleColor black = _BLACK_, skyblue = _SKYBLUE_, white = _WHITE_;
-	COORD pos = { 0, 0 };
-	DWORD dw;
-	char bufferString[(_SCREEN_WIDTH_*2)*_SCREEN_HEIGHT_+1];
-	char loadingText[_SCREEN_WIDTH_+1];
-	int i, j, loop, bufferIndex = 0, slen;
-	
-	SetConsoleTextAttribute(loadingStageBuffer[0], black | (skyblue << 4));
-	SetConsoleTextAttribute(loadingStageBuffer[1], black | (skyblue << 4));
-	sprintf(loadingText, "Stage%02d Loading", stageIndex);
-	for (loop = 0; loop < 3; loop++)
-	{
-		strcat(loadingText, " .");
-		slen = strlen(loadingText);
-		bufferString[0] = '\0';
-		for (i = 0; i < _SCREEN_HEIGHT_ ; i++)
-		{
-			/* Print loading text on center of screen. */
-			if (i == (int)(_SCREEN_HEIGHT_ * 0.5))
-			{
-				for (j = 0; j < (int)((_SCREEN_WIDTH_ - slen) * 0.5); j++)
-				{
-					strcat(bufferString, " ");
-				}
-				strcat(bufferString, loadingText);
-				for (j = 0; j < (int)((_SCREEN_WIDTH_ - slen) * 0.5 + 1); j++)
-				{
-					strcat(bufferString, " ");
-				}
-			}
-			else
-			{
-				for (j = 0; j < _SCREEN_WIDTH_; j++)
-				{
-					strcat(bufferString, " ");
-				}
-			}
-			strcat(bufferString, "\n");
-		}
-		SetConsoleCursorPosition(loadingStageBuffer[bufferIndex], pos);
-		WriteFile(loadingStageBuffer[bufferIndex], bufferString, strlen(bufferString), &dw, NULL);
-		Sleep(300);	// 0.3sec
-		
-		/* Change actual screen */
-		SetConsoleActiveScreenBuffer(loadingStageBuffer[bufferIndex]);
-		bufferIndex = !bufferIndex;
-	}
-	SetConsoleTextAttribute(loadingStageBuffer[0], white | (black << 4));
-	SetConsoleTextAttribute(loadingStageBuffer[1], white | (black << 4));
-}
-
-void loadStageSelect()
-{
-	Flag flag;
-	int stageIndex;
-	
-	/* Some Stage selecting action */
-	
-	//something
-	
-	stageIndex = 1;
-	
-	while(1)
-	{
-		showLoadingStage(stageIndex);
-		
-		//Sleep(2000);	// 2.0sec
-		
-		loadMapData(stageIndex);
-		flag = displayGame(stageIndex);
-		
-		switch (flag)
-		{
-			case _STAGE_CLEAR_:
-				showClearStage(stageIndex++);
-				break;
-			case _STAGE_RESTART_:
-				/* Get back to loading screen without increasing stageIndex. */
-				break;	
-			default:
-				break;
-		}
-	}
 }
 
 void setPlayerPos(int x, int y)
@@ -241,12 +86,12 @@ Flag translatePlayerPos(int x, int y)
 	/* If player tried get out of the Map */
 	if (newX < 0 || mapData.width <= newX)
 	{
-		showRedEffect();
+		showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
 		return _BLOCKED_;
 	}
 	if (newY < 0 || mapData.height <= newY)
 	{
-		showRedEffect();
+		showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
 		return _BLOCKED_;
 	}
 	
@@ -254,7 +99,7 @@ Flag translatePlayerPos(int x, int y)
 	switch (mapData.map[newY][newX])
 	{
 		case _BLOCK_:
-			showRedEffect();
+			showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
 			return _BLOCKED_;
 			
 		case _FILLED_BOX_:
@@ -290,12 +135,12 @@ Flag pushBall(int ballX, int ballY)
 	/* If tried to push out of the Map */
 	if (destX < 0 || mapData.width <= destX)
 	{
-		showRedEffect();
+		showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
 		return _BLOCKED_;
 	}
 	if (destY < 0 || mapData.height <= destY)
 	{
-		showRedEffect();
+		showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
 		return _BLOCKED_;
 	}
 	
@@ -303,7 +148,7 @@ Flag pushBall(int ballX, int ballY)
 	{
 		case _BLOCK_:
 		case _FILLED_BOX_:
-			showRedEffect();
+			showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
 			return _BLOCKED_;
 			
 		case _EMPTY_BOX_:
@@ -327,12 +172,12 @@ Flag pushFilledBox(int boxX, int boxY)
 	/* If tried to push out of the Map */
 	if (destX < 0 || mapData.width <= destX)
 	{
-		showRedEffect();
+		showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
 		return _BLOCKED_;
 	}
 	if (destY < 0 || mapData.height <= destY)
 	{
-		showRedEffect();
+		showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
 		return _BLOCKED_;
 	}
 	
@@ -341,7 +186,7 @@ Flag pushFilledBox(int boxX, int boxY)
 		case _BLOCK_:
 		case _FILLED_BOX_:
 		case _BALL_:
-			showRedEffect();
+			showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
 			return _BLOCKED_;
 			
 		case _EMPTY_BOX_:
@@ -385,67 +230,11 @@ bool EqualsWithPlayerPos(int x, int y)
 	return false;
 }
 
-void clearScreen()		// Clean current screen buffer.
-{
-	COORD pos = { 0, 0 };
-	DWORD dw;
-	FillConsoleOutputCharacter(stageScreenBuffer[currentScreenBufferIndex], ' ', _SCREEN_WIDTH_ * _SCREEN_HEIGHT_, pos, &dw);
-}
-
 void exitGame()
 {
 	system("cls");
 	printf("THANKS FOR PLAYING\n\n\n\n\n\n\n");
 	exit(0);
-}
-
-void showRedEffect()
-{
-	SetConsoleActiveScreenBuffer(effectBuffer);
-	Sleep(10); // 0.05sec
-	SetConsoleActiveScreenBuffer(stageScreenBuffer[currentScreenBufferIndex]);
-}
-
-void printScreen(char* s)
-{
-	COORD zero = { 0, 0 };
-	DWORD dw;
-	
-	/* Write rendered string(= char* s) to HANDLE(= screen buffer). */
-	SetConsoleCursorPosition(stageScreenBuffer[currentScreenBufferIndex], zero);
-	WriteFile(stageScreenBuffer[currentScreenBufferIndex], s, strlen(s), &dw, NULL);
-	
-	/* Write only player's character to HANDLE(= screen buffer). */
-	printPlayer();
-	
-	/* Change actual HANDLE(= screen buffer) */
-	SetConsoleActiveScreenBuffer(stageScreenBuffer[currentScreenBufferIndex]);
-	currentScreenBufferIndex = !currentScreenBufferIndex;
-}
-
-void printPlayer()
-{
-	ConsoleColor white = _WHITE_, yellow = _BRIGHTYELLOW_, black = _BLACK_;
-	COORD playerPos = { ((int)(_SCREEN_WIDTH_ * 0.5) - mapData.width + (player.x * 2)), (_SCREEN_HEIGHT_ - mapData.height) * 0.5 + player.y };
-	DWORD dw;
-	char playerCharacter[5] = "";
-	
-	SetConsoleCursorPosition(stageScreenBuffer[currentScreenBufferIndex], playerPos);
-	SetConsoleTextAttribute(stageScreenBuffer[currentScreenBufferIndex], yellow | (black << 4));
-	sprintf(playerCharacter, "★");
-	WriteFile(stageScreenBuffer[currentScreenBufferIndex], playerCharacter, strlen(playerCharacter), &dw, NULL);
-	SetConsoleTextAttribute(stageScreenBuffer[currentScreenBufferIndex], white | (black << 4));
-}
-
-void releaseScreen()
-{
-	CloseHandle(stageScreenBuffer[0]);
-	CloseHandle(stageScreenBuffer[1]);
-	CloseHandle(effectBuffer);
-	CloseHandle(loadingStageBuffer[0]);
-	CloseHandle(loadingStageBuffer[1]);
-	CloseHandle(stageClearBuffer[0]);
-	CloseHandle(stageClearBuffer[1]);
 }
 
 void loadMapData(int stageIndex)
@@ -463,11 +252,7 @@ void loadMapData(int stageIndex)
 	
 	fp = fopen(mapDataPath, "r");
 	if (fp == NULL)
-	{
-		printf("Fatal Error : Failed to load map data!\n");
-		printf("file name : %s, path : %s\nEnd sokoban game progresses.\n", fname, mapDataPath);
-		exit(1);
-	}
+		throwFatalException(_STAGE_FILE_NOT_FOUND_);
 		
 	/* Line 1 in .skb file : Width and Height of Map */
 	fgets(buffer, _MAP_WIDTH_+1, fp);
@@ -499,13 +284,11 @@ void loadMapData(int stageIndex)
 	}	
 }
 
-void renderScreenToBuffer(char* buffer)
+void renderStageMap(char* bufferString)
 {
 	int i, j;
 	char align[_SCREEN_WIDTH_] = "";
 	char block[3] = "□";
-	
-	clearScreen();
 	
 	/* Align center */
 	for (i = 0; i < (int)(((_SCREEN_WIDTH_)-((mapData.width+2)*2)) * 0.5); i++)
@@ -514,22 +297,22 @@ void renderScreenToBuffer(char* buffer)
 	}
 	for (i = 0; i < (int)((_SCREEN_HEIGHT_ - mapData.height) * 0.5) - 1; i++)
 	{
-		strcat(buffer, "\n");
+		strcat(bufferString, "\n");
 	}
 
 	/* Outside(border) of Map */
-	strcat(buffer, align);
+	strcat(bufferString, align);
 	for (i = 0; i < mapData.width + 2; i++)
 	{
-		strcat(buffer, block);
+		strcat(bufferString, block);
 	}
-	strcat(buffer, "\n");
+	strcat(bufferString, "\n");
 
 	for (i = 0; i < mapData.height; i++)
 	{
 		/* Outside(border) of Map */
-		strcat(buffer, align);
-		strcat(buffer, block);
+		strcat(bufferString, align);
+		strcat(bufferString, block);
 
 		/* Inside */
 		for (j = 0; j < mapData.width; j++)
@@ -537,7 +320,7 @@ void renderScreenToBuffer(char* buffer)
 			/* Player */
 			if (EqualsWithPlayerPos(j, i))
 			{
-				strcat(buffer, "☆");
+				strcat(bufferString, "☆");
 				continue;
 			}
 
@@ -545,23 +328,23 @@ void renderScreenToBuffer(char* buffer)
 			switch (mapData.map[i][j])
 			{
 				case _NONE_:
-					strcat(buffer, "  ");
+					strcat(bufferString, "  ");
 					break;
 					
 				case _BLOCK_:
-					strcat(buffer, block);
+					strcat(bufferString, block);
 					break;
 					
 				case _BALL_:
-					strcat(buffer, "◎");
+					strcat(bufferString, "◎");
 					break;
 					
 				case _EMPTY_BOX_:
-					strcat(buffer, "♤");
+					strcat(bufferString, "♤");
 					break;
 					
 				case _FILLED_BOX_:
-					strcat(buffer, "♠");
+					strcat(bufferString, "♠");
 					break;
 					
 				default:
@@ -570,18 +353,18 @@ void renderScreenToBuffer(char* buffer)
 		}
 
 		/* Outside(border) of Map */
-		strcat(buffer, block);
+		strcat(bufferString, block);
 
-		strcat(buffer, "\n");
+		strcat(bufferString, "\n");
 	}
 
 	/* Outside(border) of Map */
-	strcat(buffer, align);
+	strcat(bufferString, align);
 	for (i = 0; i < mapData.width + 2; i++)
 	{
-		strcat(buffer, block);
+		strcat(bufferString, block);
 	}
-	strcat(buffer, "\n");
+	strcat(bufferString, "\n");
 }
 
 bool checkClearStage()
@@ -593,80 +376,4 @@ bool checkClearStage()
 			return false;
 	}
 	return true;
-}
-
-void showClearStage(int stageIndex)
-{
-	ConsoleColor black = _BLACK_, yellow = _BRIGHTYELLOW_, white = _WHITE_;
-	COORD pos = { 0, 0 };
-	DWORD dw;
-	char bufferString[(_SCREEN_WIDTH_*2)*_SCREEN_HEIGHT_+1];
-	char stageClearText[_SCREEN_WIDTH_+1];
-	int i, j, loop, bufferIndex = 0, slen;
-	
-	SetConsoleTextAttribute(stageClearBuffer[0], black | (yellow << 4));
-	SetConsoleTextAttribute(stageClearBuffer[1], black | (yellow << 4));
-	sprintf(stageClearText, "Stage%02d Clear", stageIndex);
-	for (loop = 0; loop < 5; loop++)
-	{
-		strcat(stageClearText, " !");
-		slen = strlen(stageClearText);
-		bufferString[0] = '\0';
-		for (i = 0; i < _SCREEN_HEIGHT_ ; i++)
-		{
-			if (i == (int)(_SCREEN_HEIGHT_ * 0.5))
-			{
-				for (j = 0; j < (int)((_SCREEN_WIDTH_ - slen) * 0.5); j++)
-				{
-					strcat(bufferString, " ");
-				}
-				strcat(bufferString, stageClearText);
-				for (j = 0; j < (int)((_SCREEN_WIDTH_ - slen) * 0.5 + 1); j++)
-				{
-					strcat(bufferString, " ");
-				}
-			}
-			else
-			{
-				for (j = 0; j < _SCREEN_WIDTH_; j++)
-				{
-					strcat(bufferString, " ");
-				}
-			}
-			strcat(bufferString, "\n");
-		}
-		SetConsoleCursorPosition(stageClearBuffer[bufferIndex], pos);
-		WriteFile(stageClearBuffer[bufferIndex], bufferString, strlen(bufferString), &dw, NULL);
-		Sleep(300);	// 0.3sec
-		/* Change actual screen */
-		SetConsoleActiveScreenBuffer(stageClearBuffer[bufferIndex]);
-		bufferIndex = !bufferIndex;
-	}
-	SetConsoleTextAttribute(stageClearBuffer[0], white | (black << 4));
-	SetConsoleTextAttribute(stageClearBuffer[1], white | (black << 4));
-}
-
-Flag showStageRestartScreen()
-{
-	char input;
-	
-	SetConsoleActiveScreenBuffer(stageRestartBuffer);
-	while (1)
-	{
-		if (_kbhit())
-		{
-			input = _getch();
-			switch (input)
-			{
-				case _ESCAPE_:
-				case _LEFT_:
-					return _FALSE_;
-				case _RIGHT_:
-					return _STAGE_RESTART_;
-				default:
-					break;
-			}
-		}
-	}
-	return _FALSE_;
 }
