@@ -5,33 +5,29 @@
 #include <windows.h>
 #include <direct.h>
 
-HANDLE screenBuffer[2];
 int currentScreenBufferIndex;
+HANDLE screenBuffer[2];
 HANDLE effectBuffer;
-HANDLE loadingStageBuffer;
-HANDLE stageClearBuffer;
-char _MAP_PATH_[16] = "../MAPS/";
+HANDLE loadingStageBuffer[2];
+HANDLE stageClearBuffer[2];
 Position player;
 MapData mapData;
 
 void initGame()
 {
-	ConsoleColor black = _BLACK_, red = _BRIGHTRED_, skyblue = _SKYBLUE_, white = _WHITE_;
-	COORD pos = { 0, 0 };
-	DWORD dw;
-	int i, j;
-	char bufferString[_SCREEN_WIDTH_*_SCREEN_HEIGHT_+1];
 	char screenInitCommand[50] = "";
 	sprintf(screenInitCommand, "mode con:cols=%d lines=%d", _SCREEN_WIDTH_, _SCREEN_HEIGHT_);
 	system(screenInitCommand);
 	SetConsoleTitle("Sokoban : 19 Song JaeUk in Hansung Univ.");
 	
-	screenBuffer[0] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	screenBuffer[1] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	effectBuffer = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	loadingStageBuffer = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	stageClearBuffer = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	currentScreenBufferIndex = 0;
+	screenBuffer[0] 			= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	screenBuffer[1] 			= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	effectBuffer 				= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	loadingStageBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	loadingStageBuffer[1] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	stageClearBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	stageClearBuffer[1] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 
 	CONSOLE_CURSOR_INFO cursor;
 	cursor.dwSize = 1;
@@ -39,8 +35,23 @@ void initGame()
 	
 	SetConsoleCursorInfo(screenBuffer[0], &cursor);
 	SetConsoleCursorInfo(screenBuffer[1], &cursor);
-	
 	SetConsoleCursorInfo(effectBuffer, &cursor);
+	SetConsoleCursorInfo(loadingStageBuffer[0], &cursor);
+	SetConsoleCursorInfo(loadingStageBuffer[1], &cursor);
+	SetConsoleCursorInfo(stageClearBuffer[0], &cursor);
+	SetConsoleCursorInfo(stageClearBuffer[1], &cursor);
+	
+	initEffectScreen();
+}
+
+void initEffectScreen()
+{
+	ConsoleColor black = _BLACK_, red = _BRIGHTRED_, white = _WHITE_;
+	COORD pos = { 0, 0 };
+	DWORD dw;
+	char bufferString[_SCREEN_WIDTH_*_SCREEN_HEIGHT_+1];
+	int i, j;
+	
 	bufferString[0] = '\0';
 	SetConsoleTextAttribute(effectBuffer, white | (red << 4));
 	for (i = 0; i < _SCREEN_HEIGHT_; i++)
@@ -54,23 +65,6 @@ void initGame()
 	SetConsoleCursorPosition(effectBuffer, pos);
 	WriteFile(effectBuffer, bufferString, strlen(bufferString), &dw, NULL);
 	SetConsoleTextAttribute(effectBuffer, white | (black << 4));
-	
-	SetConsoleCursorInfo(loadingStageBuffer, &cursor);
-	bufferString[0] = '\0';
-	SetConsoleTextAttribute(loadingStageBuffer, white | (skyblue << 4));
-	for (i = 0; i < _SCREEN_HEIGHT_; i++)
-	{
-		for (j = 0; j < _SCREEN_WIDTH_; j++)
-		{
-			strcat(bufferString, " ");
-		}
-		strcat(bufferString, "\n");
-	}
-	SetConsoleCursorPosition(loadingStageBuffer, pos);
-	WriteFile(loadingStageBuffer, bufferString, strlen(bufferString), &dw, NULL);
-	SetConsoleTextAttribute(loadingStageBuffer, white | (black << 4));
-	
-	SetConsoleCursorInfo(stageClearBuffer, &cursor);
 }
 
 void loadMainMenu()
@@ -85,11 +79,12 @@ void showLoadingStage(int stageIndex)
 	DWORD dw;
 	char bufferString[_SCREEN_WIDTH_*_SCREEN_HEIGHT_+1];
 	char loadingText[_SCREEN_WIDTH_+1];
-	int i, j, loop;
+	int i, j, loop, bufferIndex = 0;
 	
-	SetConsoleTextAttribute(loadingStageBuffer, black | (skyblue << 4));
+	SetConsoleTextAttribute(loadingStageBuffer[0], black | (skyblue << 4));
+	SetConsoleTextAttribute(loadingStageBuffer[1], black | (skyblue << 4));
 	sprintf(loadingText, "Stage%02d Loading", stageIndex);
-	for (loop = 0; loop < 4; loop++)
+	for (loop = 0; loop < 6; loop++)
 	{
 		strcat(loadingText, " .");
 		bufferString[0] = '\0';
@@ -116,15 +111,15 @@ void showLoadingStage(int stageIndex)
 			}
 			strcat(bufferString, "\n");
 		}
-		SetConsoleCursorPosition(loadingStageBuffer, pos);
-		WriteFile(loadingStageBuffer, bufferString, strlen(bufferString), &dw, NULL);
-		SetConsoleTextAttribute(loadingStageBuffer, white | (black << 4));
-		
+		SetConsoleCursorPosition(loadingStageBuffer[bufferIndex], pos);
+		WriteFile(loadingStageBuffer[bufferIndex], bufferString, strlen(bufferString), &dw, NULL);
+		Sleep(300);	// 0.3sec
 		/* Change actual screen */
-		SetConsoleActiveScreenBuffer(loadingStageBuffer);
-		Sleep(500);	// 0.5sec
+		SetConsoleActiveScreenBuffer(loadingStageBuffer[bufferIndex]);
+		bufferIndex = !bufferIndex;
 	}
-	SetConsoleActiveScreenBuffer(screenBuffer[currentScreenBufferIndex]);
+	SetConsoleTextAttribute(loadingStageBuffer[0], white | (black << 4));
+	SetConsoleTextAttribute(loadingStageBuffer[1], white | (black << 4));
 }
 
 void loadStageSelect()
@@ -132,7 +127,12 @@ void loadStageSelect()
 	Flag flag;
 	int stageIndex;
 	
+	/* Some Stage selecting action */
+	
+	//something
+	
 	stageIndex = 1;
+	
 	while(1)
 	{
 		showLoadingStage(stageIndex);
@@ -143,7 +143,7 @@ void loadStageSelect()
 		flag = displayGame(stageIndex);
 		
 		if (flag == _STAGE_CLEAR_)
-			showClearStage(++stageIndex);
+			showClearStage(stageIndex++);
 		else
 			break;
 	}
@@ -345,7 +345,11 @@ void releaseScreen()
 {
 	CloseHandle(screenBuffer[0]);
 	CloseHandle(screenBuffer[1]);
-	CloseHandle(screenBuffer[2]);
+	CloseHandle(effectBuffer);
+	CloseHandle(loadingStageBuffer[0]);
+	CloseHandle(loadingStageBuffer[1]);
+	CloseHandle(stageClearBuffer[0]);
+	CloseHandle(stageClearBuffer[1]);
 }
 
 void loadMapData(int stageIndex)
@@ -501,40 +505,45 @@ void showClearStage(int stageIndex)
 	DWORD dw;
 	char bufferString[_SCREEN_WIDTH_*_SCREEN_HEIGHT_+1];
 	char stageClearText[_SCREEN_WIDTH_+1];
-	int i, j;
+	int i, j, loop, bufferIndex = 0;
 	
-	SetConsoleTextAttribute(stageClearBuffer, black | (yellow << 4));
-	sprintf(stageClearText, "! Stage%2d Clear !", stageIndex);
-	bufferString[0] = '\0';
-	for (i = 0; i < _SCREEN_HEIGHT_ ; i++)
+	SetConsoleTextAttribute(stageClearBuffer[0], black | (yellow << 4));
+	SetConsoleTextAttribute(stageClearBuffer[1], black | (yellow << 4));
+	sprintf(stageClearText, "Stage%02d Clear", stageIndex);
+	for (loop = 0; loop < 6; loop++)
 	{
-		if (i == _SCREEN_HEIGHT_ / 2)
+		strcat(stageClearText, " !");
+		bufferString[0] = '\0';
+		for (i = 0; i < _SCREEN_HEIGHT_ ; i++)
 		{
-			for (j = 0; j < (_SCREEN_WIDTH_ - strlen(stageClearText)) / 2; j++)
+			if (i == _SCREEN_HEIGHT_ / 2)
 			{
-				strcat(bufferString, " ");
+				for (j = 0; j < (_SCREEN_WIDTH_ - strlen(stageClearText)) / 2; j++)
+				{
+					strcat(bufferString, " ");
+				}
+				strcat(bufferString, stageClearText);
+				for (j = 0; j < (_SCREEN_WIDTH_ - strlen(stageClearText)) / 2; j++)
+				{
+					strcat(bufferString, " ");
+				}
 			}
-			strcat(bufferString, stageClearText);
-			for (j = 0; j < (_SCREEN_WIDTH_ - strlen(stageClearText)) / 2; j++)
+			else
 			{
-				strcat(bufferString, " ");
+				for (j = 0; j < _SCREEN_WIDTH_; j++)
+				{
+					strcat(bufferString, " ");
+				}
 			}
+			strcat(bufferString, "\n");
 		}
-		else
-		{
-			for (j = 0; j < _SCREEN_WIDTH_; j++)
-			{
-				strcat(bufferString, " ");
-			}
-		}
-		strcat(bufferString, "\n");
+		SetConsoleCursorPosition(stageClearBuffer[bufferIndex], pos);
+		WriteFile(stageClearBuffer[bufferIndex], bufferString, strlen(bufferString), &dw, NULL);
+		Sleep(300);	// 0.3sec
+		/* Change actual screen */
+		SetConsoleActiveScreenBuffer(stageClearBuffer[bufferIndex]);
+		bufferIndex = !bufferIndex;
 	}
-	SetConsoleCursorPosition(stageClearBuffer, pos);
-	WriteFile(stageClearBuffer, bufferString, strlen(bufferString), &dw, NULL);
-	SetConsoleTextAttribute(stageClearBuffer, white | (black << 4));
-	
-	/* Change actual screen */
-	SetConsoleActiveScreenBuffer(stageClearBuffer);
-	Sleep(1500);	// 1.5sec
-	SetConsoleActiveScreenBuffer(screenBuffer[currentScreenBufferIndex]);
+	SetConsoleTextAttribute(stageClearBuffer[0], white | (black << 4));
+	SetConsoleTextAttribute(stageClearBuffer[1], white | (black << 4));
 }

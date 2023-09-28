@@ -71,15 +71,16 @@ typedef struct MapData
 	Position house[_MAP_WIDTH_ * _MAP_HEIGHT_];
 } MapData;
 
-extern HANDLE screenBuffer[2];
 extern int currentScreenBufferIndex;
+extern HANDLE screenBuffer[2];
 extern HANDLE effectBuffer;
-extern HANDLE loadingStageBuffer;
-extern HANDLE stageClearBuffer;
+extern HANDLE loadingStageBuffer[2];
+extern HANDLE stageClearBuffer[2];
 extern Position player;
 extern MapData mapData;
 
 void initGame();
+void initEffectScreen();
 void loadMainMenu();
 void showLoadingStage(int);
 void loadStageSelect();
