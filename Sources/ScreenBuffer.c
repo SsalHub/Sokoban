@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <Windows.h>
+#include <process.h>
 
 #include "../Headers/BaseData.h"
 #include "../Headers/ScreenBuffer.h"
@@ -124,7 +125,7 @@ void showStageClearScreen(int stageIndex)
 			}
 			strcat(bufferString, "\n");
 		}
-		printRenderedScreen(bufferString, _BRIGHTYELLOW_, _BLACK_);
+		printRenderedScreen(bufferString, _LIGHT_YELLOW_, _BLACK_);
 		Sleep(300);	// 0.3sec
 	}
 }
@@ -220,7 +221,7 @@ Flag showStageRestartScreen()
 		}
 		strcat(bufferString, "\n");
 	}
-	printRenderedScreen(bufferString, _BRIGHTGREEN_, _BLACK_);
+	printRenderedScreen(bufferString, _GREEN_, _BLACK_);
 	
 	while (1)
 	{
@@ -244,7 +245,7 @@ Flag showStageRestartScreen()
 
 int showStageSelectScreen(int maxStage, int currentStage)
 {
-	ConsoleColor bColor = _SKYBLUE_, tColor = _BLACK_, tSelectedColor = _RED_, tInputColor = _ORANGE_;
+	ConsoleColor bColor = _OCEAN_BLUE_, tColor = _BLACK_, tSelectedColor = _RED_, tInputColor = _YELLOW_;
 	int stageSelectBoxY = (int)(_SCREEN_HEIGHT_ * 0.3), stageStructureY = (int)(_SCREEN_HEIGHT_ * 0.6);
 	COORD leftArrowPos = { (int)(_SCREEN_WIDTH_ * 0.2), stageSelectBoxY }, rightArrowPos = { (int)(_SCREEN_WIDTH_ * 0.8), stageSelectBoxY };
 	COORD stageStructurePos = { 0, stageStructureY }, zero = { 0, 0 };
@@ -334,6 +335,69 @@ int showStageSelectScreen(int maxStage, int currentStage)
 	return -1;
 }
 
+void showMainMenuScreen()
+{
+	ConsoleColor bColor = _GREEN_, tColor = _BLACK_;
+	COORD titlePos = { 0, (int)(_SCREEN_HEIGHT_ * 0.3) }, contentPos = { 0, (int)(_SCREEN_HEIGHT_ * 0.75) };
+	DWORD dw;
+	BlinkingStringData contentData;
+	char title[64], content[64];
+	char bufferString[(_MAP_WIDTH_*2)*_MAP_HEIGHT_+1] = "";
+	int i, j;
+	
+	sprintf(title, "Sokoban : 19 Song JaeUk in Hansung Univ.");
+	titlePos.X = (int)((_SCREEN_WIDTH_ - strlen(title)) * 0.5);
+	sprintf(content, "Press Any Key");
+	contentPos.X = (int)((_SCREEN_WIDTH_ - strlen(content)) * 0.5);
+	
+	/* Fill screen with background color. */
+	fillColorToScreen(bColor, tColor);
+	
+	/* Print title. */
+	renderToCurrentScreen(title, titlePos, bColor, tColor);
+	
+	/* Begin thread to print 'press any key'. */
+	contentData.str = content;
+	contentData.lifetime = 1000;	// 1.0sec
+	contentData.delay = 200;		// 0.2sec
+	contentData.bColor = bColor;
+	contentData.tColor = tColor;
+	_beginthreadex(NULL, 0, showBlinkingString, &contentData, 0, NULL);
+	
+	while (1)
+	{
+		if (_kbhit())
+		{
+			alive = 0;
+			break;
+		}
+	}
+}
+
+unsigned _stdcall showBlinkingString(void* pContentData)
+{
+	BlinkingStringData contentData = *((BlinkingStringData*)pContentData);
+	char emptyString[(_SCREEN_WIDTH_*2)*_SCREEN_HEIGHT_+1];
+	int i, slen;
+	
+	slen = strlen(contentData.str) + 1;
+	emptyString[0] = '\0';
+	for (i = 0; slen; i++)
+	{
+		strcat(emptyString, " ");
+	}
+	
+	while (1)
+	{
+		renderToCurrentScreen(contentData.str, contentData.pos, contentData.bColor, contentData.tColor);
+		Sleep(contentData.lifetime);
+//		if (!(*(contentData.alive))) break;
+		renderToCurrentScreen(emptyString, contentData.pos, contentData.bColor, contentData.tColor);
+		Sleep(contentData.delay);
+		break;
+	}
+}
+
 void showRedEffectScreen()
 {
 	COORD pos = { 0, 0 };
@@ -350,7 +414,7 @@ void showRedEffectScreen()
 		}
 		strcat(bufferString, "\n");
 	}
-	printRenderedScreen(bufferString, _BRIGHTRED_, _WHITE_);
+	printRenderedScreen(bufferString, _RED_, _WHITE_);
 	Sleep(10); // 0.05sec
 }
 

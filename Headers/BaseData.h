@@ -10,22 +10,22 @@
 
 typedef enum ConsoleColor
 {
-	_BLACK_ = 0,
-	_BLUE_,
-	_GREEN_,
-	_SKYBLUE_,
-	_RED_,
-	_PINK_,
-	_ORANGE_,
-	_WHITE_,
-	_GRAY_,
-	_LIGHTBLUE_,
-	_BRIGHTGREEN_,
-	_SKY_,
-	_BRIGHTRED_,
-	_BRIGHTPINK_,
-	_BRIGHTYELLOW_,
-	_BRIGHTWHITE_,
+	_BLACK_ 		= 0,
+	_BLUE_			= 1,
+	_DARK_GREEN_	= 2,
+	_SKYBLUE_		= 3,
+	_RED_			= 4,
+	_DARK_PURPLE_	= 5,
+	_YELLOW_		= 6,
+	_BRIGHT_GRAY_	= 7,
+	_GRAY_			= 8,
+	_OCEAN_BLUE_	= 9,
+	_GREEN_			= 10,
+	_SKY_			= 11,
+	_HOTPINK_		= 12,
+	_PURPLE_		= 13,
+	_LIGHT_YELLOW_	= 14,
+	_WHITE_			= 15,
 } ConsoleColor;
 
 typedef enum Flag
@@ -79,7 +79,7 @@ typedef struct MapData
 extern Position player;
 extern MapData mapData;
 
-void fortestfunc();
+void fortestfunc(char*);
 
 void initGame();
 void setPlayerPos(int, int);

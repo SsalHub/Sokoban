@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <Windows.h>
-#include <direct.h>
+#include <Windows.h>	// about console
+#include <direct.h>		// about reading dir and file
+#include <process.h>	// about thread
 
 #include "../Headers/BaseData.h"
 #include "../Headers/ScreenBuffer.h"
@@ -10,9 +11,9 @@
 Position player;
 MapData mapData;
 
-void fortestfunc()
+void fortestfunc(char* s)
 {
-	printf("hi"); exit(0);
+	printf("%s\n", s); exit(0);
 }
 
 void initGame()
