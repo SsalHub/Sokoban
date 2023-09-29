@@ -34,14 +34,12 @@ void initGame()
 //    font.dwFontSize.X = 15;
 //    font.dwFontSize.Y = 30;
 	
-	for (i = 0; i < screenBufferLength; i++)
-	{
-		screenBuffer[i].currentIndex = 0;
-		screenBuffer[i].buffer[0] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-		SetConsoleCursorInfo(screenBuffer[i].buffer[0], &cursor);
-		screenBuffer[i].buffer[1] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-		SetConsoleCursorInfo(screenBuffer[i].buffer[1], &cursor);
-	}
+	screenBuffer.currentIndex = 0;
+	screenBuffer.buffer[0] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	SetConsoleCursorInfo(screenBuffer.buffer[0], &cursor);
+	screenBuffer.buffer[1] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	SetConsoleCursorInfo(screenBuffer.buffer[1], &cursor);
+	
 	
 //	currentScreenBufferIndex = 0;
 //	stageScreenBuffer[0] 		= CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
@@ -68,8 +66,8 @@ void initGame()
 //	SetConsoleCursorInfo(effectBuffer, &cursor);
 //	SetConsoleCursorInfo(stageRestartBuffer, &cursor);
 
-	initEffectScreen();
-	initStageRestartScreen();
+//	initEffectScreen();
+//	initStageRestartScreen();
 }
 
 void setPlayerPos(int x, int y)
@@ -86,12 +84,12 @@ Flag translatePlayerPos(int x, int y)
 	/* If player tried get out of the Map */
 	if (newX < 0 || mapData.width <= newX)
 	{
-		showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
+		showRedEffectScreen();
 		return _BLOCKED_;
 	}
 	if (newY < 0 || mapData.height <= newY)
 	{
-		showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
+		showRedEffectScreen();
 		return _BLOCKED_;
 	}
 	
@@ -99,7 +97,7 @@ Flag translatePlayerPos(int x, int y)
 	switch (mapData.map[newY][newX])
 	{
 		case _BLOCK_:
-			showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
+			showRedEffectScreen();
 			return _BLOCKED_;
 			
 		case _FILLED_BOX_:
@@ -135,12 +133,12 @@ Flag pushBall(int ballX, int ballY)
 	/* If tried to push out of the Map */
 	if (destX < 0 || mapData.width <= destX)
 	{
-		showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
+		showRedEffectScreen();
 		return _BLOCKED_;
 	}
 	if (destY < 0 || mapData.height <= destY)
 	{
-		showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
+		showRedEffectScreen();
 		return _BLOCKED_;
 	}
 	
@@ -148,7 +146,7 @@ Flag pushBall(int ballX, int ballY)
 	{
 		case _BLOCK_:
 		case _FILLED_BOX_:
-			showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
+			showRedEffectScreen();
 			return _BLOCKED_;
 			
 		case _EMPTY_BOX_:
@@ -172,12 +170,12 @@ Flag pushFilledBox(int boxX, int boxY)
 	/* If tried to push out of the Map */
 	if (destX < 0 || mapData.width <= destX)
 	{
-		showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
+		showRedEffectScreen();
 		return _BLOCKED_;
 	}
 	if (destY < 0 || mapData.height <= destY)
 	{
-		showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
+		showRedEffectScreen();
 		return _BLOCKED_;
 	}
 	
@@ -186,7 +184,7 @@ Flag pushFilledBox(int boxX, int boxY)
 		case _BLOCK_:
 		case _FILLED_BOX_:
 		case _BALL_:
-			showRedEffect(getScreenBuffer(_STAGE_SCREEN_));
+			showRedEffectScreen();
 			return _BLOCKED_;
 			
 		case _EMPTY_BOX_:

@@ -53,7 +53,7 @@ Flag displayGame(int stageIndex)
 		
 		/* Render and Print Stage(= map) data on bufferString(= char* bufferString). */
 		renderStageMap(bufferString);
-		printScreen(getScreenBuffer(_STAGE_SCREEN_), bufferString);
+		printScreen(bufferString, _BLACK_, _WHITE_);
 			
 		if (flag == _STAGE_CLEAR_)
 			break;

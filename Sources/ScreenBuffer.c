@@ -6,9 +6,9 @@
 
 ScreenBuffer screenBuffer;
 
-void swapScreenIndex(ScreenBuffer* sb)
+void swapScreenIndex()
 {
-	sb->currentIndex = !(sb->currentIndex);
+	screenBuffer.currentIndex = !(screenBuffer.currentIndex);
 }
 
 //void initEffectScreen()
@@ -110,7 +110,7 @@ void printScreen(char* s, ConsoleColor bColor, ConsoleColor tColor)
 	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], playerCharacter, strlen(playerCharacter), &dw, NULL);
 	
 	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
-	swapScreenIndex(&sb);
+	swapScreenIndex();
 }
 
 void printRenderedScreen(char* bufferString, ConsoleColor bColor, ConsoleColor tColor)
@@ -121,8 +121,8 @@ void printRenderedScreen(char* bufferString, ConsoleColor bColor, ConsoleColor t
 	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], pos);
 	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
 	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], bufferString, strlen(bufferString), &dw, NULL);
-	SetConsoleActiveScreenBuffer(sb->buffer[sb->currentIndex]);
-	swapScreenIndex(&sb);
+	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
+	swapScreenIndex();
 }
 
 void clearScreen()	

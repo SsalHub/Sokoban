@@ -78,6 +78,8 @@ typedef struct MapData
 extern Position player;
 extern MapData mapData;
 
+void fortestfunc();
+
 void initGame();
 void setPlayerPos(int, int);
 Flag translatePlayerPos(int, int);
@@ -89,5 +91,3 @@ void exitGame();
 void loadMapData(int);
 void renderStageMap(char*);
 bool checkClearStage();
-
-void fortestfunc();
