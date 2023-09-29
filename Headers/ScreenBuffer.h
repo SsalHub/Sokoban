@@ -25,6 +25,7 @@ void swapScreenIndex();
 //void initEffectScreen();
 //void initStageRestartScreen();
 void printScreen(char*, ConsoleColor, ConsoleColor);
+void printStageScreen(char*, ConsoleColor, ConsoleColor);
 void printRenderedScreen(char*, ConsoleColor, ConsoleColor);
 void clearScreen();
 //void printPlayer(ScreenBuffer*);

@@ -8,7 +8,7 @@
 
 Flag displayGame(int stageIndex)
 {
-	char bufferString[_SCREEN_WIDTH_ * _SCREEN_HEIGHT_];
+	char bufferString[(_SCREEN_WIDTH_*2)*_SCREEN_HEIGHT_+1];
 	char input;
 	Flag flag;
 	
@@ -53,8 +53,8 @@ Flag displayGame(int stageIndex)
 		
 		/* Render and Print Stage(= map) data on bufferString(= char* bufferString). */
 		renderStageMap(bufferString);
-		printScreen(bufferString, _BLACK_, _WHITE_);
-			
+		printStageScreen(bufferString, _BLACK_, _WHITE_);
+		
 		if (flag == _STAGE_CLEAR_)
 			break;
 	}

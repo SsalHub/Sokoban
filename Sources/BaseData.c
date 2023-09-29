@@ -285,21 +285,9 @@ void loadMapData(int stageIndex)
 void renderStageMap(char* bufferString)
 {
 	int i, j;
-	char align[_SCREEN_WIDTH_] = "";
 	char block[3] = "бр";
-	
-	/* Align center */
-	for (i = 0; i < (int)(((_SCREEN_WIDTH_)-((mapData.width+2)*2)) * 0.5); i++)
-	{
-		strcat(align, " ");
-	}
-	for (i = 0; i < (int)((_SCREEN_HEIGHT_ - mapData.height) * 0.5) - 1; i++)
-	{
-		strcat(bufferString, "\n");
-	}
 
 	/* Outside(border) of Map */
-	strcat(bufferString, align);
 	for (i = 0; i < mapData.width + 2; i++)
 	{
 		strcat(bufferString, block);
@@ -309,7 +297,6 @@ void renderStageMap(char* bufferString)
 	for (i = 0; i < mapData.height; i++)
 	{
 		/* Outside(border) of Map */
-		strcat(bufferString, align);
 		strcat(bufferString, block);
 
 		/* Inside */
@@ -357,7 +344,6 @@ void renderStageMap(char* bufferString)
 	}
 
 	/* Outside(border) of Map */
-	strcat(bufferString, align);
 	for (i = 0; i < mapData.width + 2; i++)
 	{
 		strcat(bufferString, block);

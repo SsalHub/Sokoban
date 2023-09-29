@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <Windows.h>
 
 #include "../Headers/BaseData.h"
@@ -91,17 +92,53 @@ void swapScreenIndex()
 //	SetConsoleTextAttribute(restartScreen->buffer[restartScreen->currentIndex], white | (black << 4));
 //}
 
-void printScreen(char* s, ConsoleColor bColor, ConsoleColor tColor)
+//void printScreen(char* s, ConsoleColor bColor, ConsoleColor tColor)
+//{
+//	COORD playerPos = { ((int)(_SCREEN_WIDTH_ * 0.5) - mapData.width + (player.x * 2)), (_SCREEN_HEIGHT_ - mapData.height) * 0.5 + player.y };
+//	COORD zero = { 0, 0 };
+//	DWORD dw;
+//	char playerCharacter[5] = "";
+//	
+//	clearScreen();
+//	
+//	/* Write rendered stage(= map) data to HANDLE(= screen buffer). */
+//	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], zero);
+//	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+//	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], s, strlen(s), &dw, NULL);
+//	
+//	/* Write only player's character with yellow color to HANDLE(= screen buffer). */
+//	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], playerPos);
+//	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+//	sprintf(playerCharacter, "¡Ú");
+//	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], playerCharacter, strlen(playerCharacter), &dw, NULL);
+//	
+//	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
+//	swapScreenIndex();
+//}
+
+void printStageScreen(char* map, ConsoleColor bColor, ConsoleColor tColor)
 {
-	COORD playerPos = { ((int)(_SCREEN_WIDTH_ * 0.5) - mapData.width + (player.x * 2)), (_SCREEN_HEIGHT_ - mapData.height) * 0.5 + player.y };
+	int centerAlignX = (int)(((_SCREEN_WIDTH_)-((mapData.width+2)*2))*0.5), centerAlignY = (int)((_SCREEN_HEIGHT_ - mapData.height)*0.5)-1;
+	COORD centeredMapPos = { centerAlignX, centerAlignY }, playerPos = { centeredMapPos.X+((player.x+1)*2), centeredMapPos.Y+player.y+1 };
 	COORD zero = { 0, 0 };
 	DWORD dw;
 	char playerCharacter[5] = "";
+	char* nextLine;
+	
+	clearScreen();
 	
 	/* Write rendered stage(= map) data to HANDLE(= screen buffer). */
-	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], zero);
 	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
-	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], s, strlen(s), &dw, NULL);
+	nextLine = strtok(map, "\n");
+	while (nextLine != NULL)
+	{
+		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], centeredMapPos);
+		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], nextLine, strlen(nextLine), &dw, NULL);
+		nextLine = strtok(NULL, "\n");
+		centeredMapPos.Y++;
+	}
+	centeredMapPos.X = centerAlignX;
+	centeredMapPos.Y = centerAlignY;
 	
 	/* Write only player's character with yellow color to HANDLE(= screen buffer). */
 	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], playerPos);
@@ -118,9 +155,12 @@ void printRenderedScreen(char* bufferString, ConsoleColor bColor, ConsoleColor t
 	COORD pos = { 0, 0 };
 	DWORD dw;
 	
+	clearScreen();
+	
 	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], pos);
 	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
 	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], bufferString, strlen(bufferString), &dw, NULL);
+	
 	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
 	swapScreenIndex();
 }
@@ -129,7 +169,21 @@ void clearScreen()
 {
 	COORD pos = { 0, 0 };
 	DWORD dw;
-	FillConsoleOutputCharacter(screenBuffer.buffer[screenBuffer.currentIndex], ' ', _SCREEN_WIDTH_ * _SCREEN_HEIGHT_, pos, &dw);
+	char bufferString[(_SCREEN_WIDTH_*2)*_SCREEN_HEIGHT_+1];
+	int i, j;
+	
+	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], pos);
+	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], _WHITE_ | (_BLACK_ << 4));
+	bufferString[0] = '\0';
+	for (i = 0; i < _SCREEN_HEIGHT_; i++)
+	{
+		for (j = 0; j < _SCREEN_WIDTH_; j++)
+		{
+			strcat(bufferString, " ");
+		}
+		strcat(bufferString, "\n");
+	}
+	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], bufferString, strlen(bufferString), &dw, NULL);
 }
 
 //void printPlayer(ScreenBuffer* sb)
