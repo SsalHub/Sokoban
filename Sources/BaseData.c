@@ -351,6 +351,22 @@ void renderStageMap(char* bufferString)
 	strcat(bufferString, "\n");
 }
 
+void renderToCurrentScreen(char* str, COORD pos, ConsoleColor bColor, ConsoleColor tColor)
+{
+	DWORD dw;
+	char* nextLine;
+	
+	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+	nextLine = strtok(str, "\n");
+	while (nextLine != NULL)
+	{
+		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], pos);
+		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], nextLine, strlen(nextLine), &dw, NULL);
+		nextLine = strtok(NULL, "\n");
+		pos.Y++;
+	}
+}
+
 bool checkClearStage()
 {
 	int i;

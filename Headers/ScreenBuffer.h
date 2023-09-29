@@ -28,17 +28,13 @@ typedef struct StageSelectBox
 extern ScreenBuffer screenBuffer;
 
 void swapScreenIndex();
-//void initEffectScreen();
-//void initStageRestartScreen();
-void printScreen(char*, ConsoleColor, ConsoleColor);
 void printStageScreen(char*, ConsoleColor, ConsoleColor);
 void printRenderedScreen(char*, ConsoleColor, ConsoleColor);
 void clearScreen();
-//void printPlayer(ScreenBuffer*);
 void releaseScreen();
 void showStageClearScreen(int);
 void showLoadingStageScreen(int);
 Flag showStageRestartScreen();
 int showStageSelectScreen(int, int);
 void showRedEffectScreen();
-void printFewText(char*, COORD, ConsoleColor, ConsoleColor);
+void fillColorToScreen(ConsoleColor, ConsoleColor);

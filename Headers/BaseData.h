@@ -49,14 +49,15 @@ typedef enum GameObject
 
 typedef enum InputType
 {
-	_SPACE_ = 32,
-	_ESCAPE_ = 27,
-	_LEFT_ = 75,
-	_RIGHT_ = 77,
-	_UP_ = 72,
-	_DOWN_ = 80,
-	_UPPER_R_ = 82,
-	_LOWER_R_ = 114,
+	_SPACE_ 			= 32,
+	_ESCAPE_ 			= 27,
+	_LEFT_ 				= 75,
+	_RIGHT_ 			= 77,
+	_UP_ 				= 72,
+	_DOWN_ 				= 80,
+	_UPPER_R_ 			= 82,
+	_LOWER_R_ 			= 114,
+	_CARRIGE_RETURN_ 	= 13,
 } InputType;
 
 typedef struct Position
@@ -90,4 +91,5 @@ bool EqualsWithPlayerPos(int, int);
 void exitGame();
 void loadMapData(int);
 void renderStageMap(char*);
+void renderToCurrentScreen(char*, COORD, ConsoleColor, ConsoleColor);
 bool checkClearStage();
