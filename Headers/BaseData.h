@@ -69,10 +69,10 @@ typedef struct MapData
 {
 	int width;
 	int height;
-	int houseCount;
+	int boxCount;
 	int map[_MAP_HEIGHT_][_MAP_WIDTH_];
 	int structure[_MAP_HEIGHT_][_MAP_WIDTH_];
-	Position house[_MAP_WIDTH_ * _MAP_HEIGHT_];
+	Position box[_MAP_WIDTH_ * _MAP_HEIGHT_];
 } MapData;
 
 extern Position player;

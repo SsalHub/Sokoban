@@ -2,4 +2,4 @@
 
 void loadStageSelect();
 int countStage();
-void renderStageSelectBuffer(char*);
+void renderStageStruct(char*);

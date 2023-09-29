@@ -2,12 +2,18 @@
 
 #include "BaseData.h"
 
-
 typedef struct ScreenBuffer
 {
 	HANDLE buffer[2];
 	int currentIndex;
 } ScreenBuffer;
+
+typedef struct StageSelectBox
+{
+	COORD pos;
+	char buffer[_SCREEN_WIDTH_];
+	int stageIndex;
+} StageSelectBox;
 
 //typedef enum ScreenBufferIndex
 //{
@@ -33,4 +39,6 @@ void releaseScreen();
 void showStageClearScreen(int);
 void showLoadingStageScreen(int);
 Flag showStageRestartScreen();
+int showStageSelectScreen(int, int);
 void showRedEffectScreen();
+void printFewText(char*, COORD, ConsoleColor, ConsoleColor);

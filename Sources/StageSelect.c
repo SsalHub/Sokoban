@@ -13,12 +13,13 @@ void loadStageSelect()
 	Flag flag;
 	char bufferString[(_SCREEN_WIDTH_*2)*_SCREEN_HEIGHT_+1];
 	char input;
-	int stageIndex, stages;
+	int stageIndex, maxStage;
 	
 	/* Some Stage selecting action */
 	
-	stages = countStage();
+	maxStage = countStage();
 	stageIndex = 1;
+	stageIndex = showStageSelectScreen(maxStage, stageIndex);
 	
 	/* 할일 1출력 2입력받기 3받은입력검사 4검사후액션 */
 //	while (1)
@@ -88,7 +89,65 @@ int countStage()
     return stageCount;
 }
 
-void renderStageSelectBuffer(char* bufferString)
+void renderStageStruct(char* bufferString)
 {
-	
+	int i, j;
+	char block[3] = "□";
+
+	/* Outside(border) of Map */
+	for (i = 0; i < mapData.width + 2; i++)
+	{
+		strcat(bufferString, block);
+	}
+	strcat(bufferString, "\n");
+
+	for (i = 0; i < mapData.height; i++)
+	{
+		/* Outside(border) of Map */
+		strcat(bufferString, block);
+
+		/* Inside */
+		for (j = 0; j < mapData.width; j++)
+		{
+
+			/* GameObjects */
+			switch (mapData.structure[i][j])
+			{
+				case _NONE_:
+					strcat(bufferString, "  ");
+					break;
+					
+				case _BLOCK_:
+					strcat(bufferString, block);
+					break;
+					
+				case _BALL_:
+					strcat(bufferString, "◎");
+					break;
+					
+				case _EMPTY_BOX_:
+					strcat(bufferString, "♤");
+					break;
+					
+				case _FILLED_BOX_:
+					strcat(bufferString, "♠");
+					break;
+					
+				default:
+					break;
+			}
+		}
+
+		/* Outside(border) of Map */
+		strcat(bufferString, block);
+
+		strcat(bufferString, "\n");
+	}
+
+	/* Outside(border) of Map */
+	for (i = 0; i < mapData.width + 2; i++)
+	{
+		strcat(bufferString, block);
+	}
+	strcat(bufferString, "\n");
 }

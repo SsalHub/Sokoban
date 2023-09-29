@@ -257,7 +257,7 @@ void loadMapData(int stageIndex)
 	mapData.width = atoi(strtok(buffer, " "));
 	mapData.height = atoi(buffer);
 	
-	mapData.houseCount = 0;
+	mapData.boxCount = 0;
 	for (i = 0; i < mapData.height; i++)
 	{
 		fgets(buffer, _MAP_WIDTH_+1, fp);
@@ -271,9 +271,9 @@ void loadMapData(int stageIndex)
 					setPlayerPos(j, i);
 					break;
 				case _EMPTY_BOX_:
-					mapData.house[mapData.houseCount].x = j;
-					mapData.house[mapData.houseCount].y = i;
-					mapData.houseCount++;
+					mapData.box[mapData.boxCount].x = j;
+					mapData.box[mapData.boxCount].y = i;
+					mapData.boxCount++;
 					// It continues to default below.
 				default:
 					mapData.map[i][j] = buffer[j] - 48;
@@ -354,9 +354,9 @@ void renderStageMap(char* bufferString)
 bool checkClearStage()
 {
 	int i;
-	for (i = 0; i < mapData.houseCount; i++)
+	for (i = 0; i < mapData.boxCount; i++)
 	{
-		if (mapData.map[mapData.house[i].y][mapData.house[i].x] != _FILLED_BOX_)
+		if (mapData.map[mapData.box[i].y][mapData.box[i].x] != _FILLED_BOX_)
 			return false;
 	}
 	return true;

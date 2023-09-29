@@ -4,6 +4,7 @@
 
 #include "../Headers/BaseData.h"
 #include "../Headers/ScreenBuffer.h"
+#include "../Headers/ExceptionHandler.h"
 
 ScreenBuffer screenBuffer;
 
@@ -357,6 +358,112 @@ Flag showStageRestartScreen()
 		}
 	}
 	return _FALSE_;
+}
+
+int showStageSelectScreen(int maxStage, int currentStage)
+{
+	ConsoleColor bColor = _LIGHTBLUE_, tColor = _BLACK_, tSelectedColor = _RED_, tInputColor = _ORANGE_;
+	int stageSelectBoxY = (int)(_SCREEN_HEIGHT_ * 0.3), stageStructureY = (int)(_SCREEN_HEIGHT_ * 0.6);
+	COORD leftArrowPos = { (int)(_SCREEN_WIDTH_ * 0.2), stageSelectBoxY }, rightArrowPos = { (int)(_SCREEN_WIDTH_ * 0.8), stageSelectBoxY };
+	COORD stageStructurePos = { 0, stageStructureY };
+	DWORD dw;
+	StageSelectBox stageSelectBox[3];
+	char leftArrowChar = "∠", rightArrowChar = "⊥"; 
+	char stageStructure[_MAP_WIDTH_*_MAP_HEIGHT_+1];
+	char input;
+	int i, j, currentChangedIndex;
+	
+	
+	currentChangedIndex = currentStage;
+	
+	while (1)
+	{
+		/* Initialize stage select box. */
+		for (i = 0; i < 3; i++)
+		{
+			stageSelectBox[i].stageIndex = i + (-1 + currentChangedIndex);
+			if (stageSelectBox[i].stageIndex < 1 || maxStage < stageSelectBox[i].stageIndex)
+				continue;
+			
+			sprintf(stageSelectBox[i].buffer,"忙式式式忖\n");
+			j = (int)(strlen(stageSelectBox[i].buffer) * 1.5);
+			sprintf(stageSelectBox[i].buffer,"弛 %03d  弛\n", stageSelectBox[i].stageIndex);
+			sprintf(stageSelectBox[i].buffer,"戌式式式戎\n");
+			stageSelectBox[i].pos.X = (int)(_SCREEN_WIDTH_ * 0.5) + ((-1 + i) * j);
+			stageSelectBox[i].pos.Y = stageSelectBoxY;
+		}
+		
+		clearScreen();
+		
+		/* Print each arrows. */
+		// left
+		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], leftArrowPos);
+		SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], leftArrowChar, strlen(leftArrowChar), &dw, NULL);
+		// right
+		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], rightArrowPos);
+		SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], rightArrowChar, strlen(rightArrowChar), &dw, NULL);
+		
+		/* Print Stage Select Boxes. */
+		for (i = 0; i < 3; i++)
+		{
+			if (stageSelectBox[i].stageIndex < 1 || maxStage < stageSelectBox[i].stageIndex)
+				continue;
+				
+			SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], stageSelectBox[i].pos);
+			if (i == 1)
+				SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tSelectedColor | (bColor << 4));
+			else
+				SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+			WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], stageSelectBox[i].buffer, strlen(stageSelectBox[i].buffer), &dw, NULL);
+		}
+		
+		/* Print currently selected stage's map structure. */
+		loadMapData(currentChangedIndex);
+		renderStageMap(stageStructure);
+		stageStructurePos.X = (int)((_SCREEN_WIDTH_ - (mapData.width + 2) * 2) * 0.5);
+		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], stageStructurePos);
+		SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], stageStructure, strlen(stageStructure), &dw, NULL);
+		
+		/* Print actual buffer and swap */
+		SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
+		swapScreenIndex();
+		
+		if (_kbhit())
+		{
+			input = _getch();
+			switch (input)
+			{
+				case _ESCAPE_:
+				case _LEFT_:
+					if (currentChangedIndex - 1 < 1) break;
+					SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], leftArrowPos);
+					SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tInputColor | (bColor << 4));
+					WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], leftArrowChar, strlen(leftArrowChar), &dw, NULL);
+		
+					currentChangedIndex = currentChangedIndex - 1;
+					break;
+				case _RIGHT_:
+					if (maxStage < currentChangedIndex + 1) break;
+					
+					SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], rightArrowPos);
+					SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tInputColor | (bColor << 4));
+					WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], rightArrowChar, strlen(rightArrowChar), &dw, NULL);
+					
+					currentChangedIndex = currentChangedIndex + 1;
+					break;
+				case _SPACE_:
+					/* select ok */
+					return currentChangedIndex;
+				default:
+					break;
+			}
+		}
+	}
+	throwFatalException(_UNKNOWN_EXCEPTION_);
+	return -1;
 }
 
 void showRedEffectScreen()
