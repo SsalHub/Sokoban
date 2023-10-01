@@ -11,9 +11,9 @@
 Position player;
 MapData mapData;
 
-void fortestfunc(char* s)
+void fortestfunc()
 {
-	printf("%s\n", s); exit(0);
+	printf("hello\n"); exit(0);
 }
 
 void initGame()
@@ -257,6 +257,7 @@ void loadMapData(int stageIndex)
 	fgets(buffer, _MAP_WIDTH_+1, fp);
 	mapData.width = atoi(strtok(buffer, " "));
 	mapData.height = atoi(buffer);
+	mapData.stageIndex = stageIndex;
 	
 	mapData.boxCount = 0;
 	for (i = 0; i < mapData.height; i++)
@@ -281,91 +282,6 @@ void loadMapData(int stageIndex)
 			}
 		}
 	}	
-}
-
-void renderStageMap(char* bufferString)
-{
-	int i, j;
-	char block[3] = "¡à";
-
-	/* Outside(border) of Map */
-	for (i = 0; i < mapData.width + 2; i++)
-	{
-		strcat(bufferString, block);
-	}
-	strcat(bufferString, "\n");
-
-	for (i = 0; i < mapData.height; i++)
-	{
-		/* Outside(border) of Map */
-		strcat(bufferString, block);
-
-		/* Inside */
-		for (j = 0; j < mapData.width; j++)
-		{
-			/* Player */
-			if (EqualsWithPlayerPos(j, i))
-			{
-				strcat(bufferString, "¡Ù");
-				continue;
-			}
-
-			/* GameObjects */
-			switch (mapData.map[i][j])
-			{
-				case _NONE_:
-					strcat(bufferString, "  ");
-					break;
-					
-				case _BLOCK_:
-					strcat(bufferString, block);
-					break;
-					
-				case _BALL_:
-					strcat(bufferString, "¡Ý");
-					break;
-					
-				case _EMPTY_BOX_:
-					strcat(bufferString, "¢»");
-					break;
-					
-				case _FILLED_BOX_:
-					strcat(bufferString, "¢¼");
-					break;
-					
-				default:
-					break;
-			}
-		}
-
-		/* Outside(border) of Map */
-		strcat(bufferString, block);
-
-		strcat(bufferString, "\n");
-	}
-
-	/* Outside(border) of Map */
-	for (i = 0; i < mapData.width + 2; i++)
-	{
-		strcat(bufferString, block);
-	}
-	strcat(bufferString, "\n");
-}
-
-void renderToCurrentScreen(char* str, COORD pos, ConsoleColor bColor, ConsoleColor tColor)
-{
-	DWORD dw;
-	char* nextLine;
-	
-	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
-	nextLine = strtok(str, "\n");
-	while (nextLine != NULL)
-	{
-		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], pos);
-		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], nextLine, strlen(nextLine), &dw, NULL);
-		nextLine = strtok(NULL, "\n");
-		pos.Y++;
-	}
 }
 
 bool checkClearStage()

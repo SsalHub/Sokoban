@@ -15,30 +15,14 @@ typedef struct StageSelectBox
 	int stageIndex;
 } StageSelectBox;
 
-typedef struct BlinkingStringData
-{
-	char* str;
-	int lifetime;
-	int delay; 
-	COORD pos;
-	ConsoleColor bColor; 
-	ConsoleColor tColor;
-} BlinkingStringData;
-
-//typedef enum ScreenBufferIndex
-//{
-//	_STAGE_SCREEN_ 				= 0,
-//	_STAGE_LOADING_SCREEN_		= 1,
-//	_STAGE_CLEAR_SCREEN_		= 2,
-//	_STAGE_SELECT_SCREEN_		= 3,
-//	_EFFECT_SCREEN_				= 4,
-//	_STAGE_RESTART_SCREEN_		= 5,
-//} ScreenBufferIndex;
-
 extern ScreenBuffer screenBuffer;
 
 void swapScreenIndex();
-void printStageScreen(char*, ConsoleColor, ConsoleColor);
+void renderStageMapScreen();
+void renderToCurrentScreen(char*, COORD, ConsoleColor, ConsoleColor);
+void renderRedEffectScreen();
+void printScreen();
+void printMainMenuScreen();
 void printRenderedScreen(char*, ConsoleColor, ConsoleColor);
 void clearScreen();
 void releaseScreen();
@@ -47,6 +31,5 @@ void showLoadingStageScreen(int);
 Flag showStageRestartScreen();
 int showStageSelectScreen(int, int);
 void showMainMenuScreen();
-unsigned _stdcall showBlinkingString(void*);
 void showRedEffectScreen();
 void fillColorToScreen(ConsoleColor, ConsoleColor);

@@ -68,6 +68,7 @@ typedef struct Position
 
 typedef struct MapData
 {
+	int stageIndex;
 	int width;
 	int height;
 	int boxCount;
@@ -79,7 +80,7 @@ typedef struct MapData
 extern Position player;
 extern MapData mapData;
 
-void fortestfunc(char*);
+void fortestfunc();
 
 void initGame();
 void setPlayerPos(int, int);
@@ -90,6 +91,4 @@ void changePositionState(int, int, GameObject);
 bool EqualsWithPlayerPos(int, int);
 void exitGame();
 void loadMapData(int);
-void renderStageMap(char*);
-void renderToCurrentScreen(char*, COORD, ConsoleColor, ConsoleColor);
 bool checkClearStage();
