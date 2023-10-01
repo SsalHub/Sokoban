@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <Windows.h>
 #include <process.h>
@@ -9,10 +10,133 @@
 
 ScreenBuffer screenBuffer;
 
+void printScreen(char* str, COORD pos, bool bSwap)
+{
+	DWOWD dw;
+	char* nextline;
+	
+	clearScreen();
+	nextLine = strtok(str, "\n");
+	while (nextLine != NULL)
+	{
+		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], pos);
+		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], nextLine, strlen(nextLine), &dw, NULL);
+		nextLine = strtok(NULL, "\n");
+		pos.Y++;
+	}
+	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
+	if (bSwap) swapScreenIndex();
+}
+
+void printScreen(void (*render)(void), bool bSwap)
+{
+	clearScreen();
+	render();
+	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
+	if (bSwap) swapScreenIndex();
+}
+
+void clearScreen()	
+{
+	COORD zero = { 0, 0 };
+	DWORD dw;
+	char bufferString[(_SCREEN_WIDTH_*2)*_SCREEN_HEIGHT_+1];
+	int i, j;
+	
+	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], zero);
+	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], _WHITE_ | (_BLACK_ << 4));
+	bufferString[0] = '\0';
+	for (i = 0; i < _SCREEN_HEIGHT_; i++)
+	{
+		for (j = 0; j < _SCREEN_WIDTH_; j++)
+		{
+			strcat(bufferString, " ");
+		}
+		strcat(bufferString, "\n");
+	}
+	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], bufferString, strlen(bufferString), &dw, NULL);
+}
+
 void swapScreenIndex()
 {
 	screenBuffer.currentIndex = !(screenBuffer.currentIndex);
 }
+
+void fillColorToScreen(ConsoleColor bColor, ConsoleColor tColor, bool bSwap)
+{	
+	COORD zero = { 0, 0 };
+	DWORD dw;
+	char bufferString[(_SCREEN_WIDTH_*2)*_SCREEN_HEIGHT_+1] = "";
+	int i, j;
+	
+	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], zero);
+	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+	bufferString[0] = '\0';
+	for (i = 0; i < _SCREEN_HEIGHT_; i++)
+	{
+		for (j = 0; j < _SCREEN_WIDTH_; j++)
+		{
+			strcat(bufferString, " ");
+		}
+		strcat(bufferString, "\n");
+	}
+	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], bufferString, strlen(bufferString), &dw, NULL);
+	if (bSwap) swapScreenIndex();
+}
+
+void releaseScreen()
+{
+	CloseHandle(screenBuffer.buffer[0]);
+	CloseHandle(screenBuffer.buffer[1]);
+}
+
+void showRedEffect()
+{
+	fillColorToScreen(_RED_, _BLACK_, true);
+	Sleep(50);	// 0.05sec
+}
+
+
+
+
+/* Utils - must be removed */
+
+void renderToCurrentScreen(char* str, COORD pos, ConsoleColor bColor, ConsoleColor tColor)
+{
+	DWORD dw;
+	char* nextLine;
+	
+	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+	nextLine = strtok(str, "\n");
+	while (nextLine != NULL)
+	{
+		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], pos);
+		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], nextLine, strlen(nextLine), &dw, NULL);
+		nextLine = strtok(NULL, "\n");
+		pos.Y++;
+	}
+}
+
+void printRenderedScreen(char* bufferString, ConsoleColor bColor, ConsoleColor tColor)
+{
+	COORD pos = { 0, 0 };
+	DWORD dw;
+	
+	clearScreen();
+	
+	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], pos);
+	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], bufferString, strlen(bufferString), &dw, NULL);
+	
+	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
+	swapScreenIndex();
+}
+
+
+
+
+
+/* Stage etc... */
 
 void renderStageMapScreen()
 {
@@ -99,105 +223,6 @@ void renderStageMapScreen()
 	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], playerPos);
 	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tPlayerColor | (bColor << 4));
 	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], playerCharacter, strlen(playerCharacter), &dw, NULL);
-}
-
-void renderToCurrentScreen(char* str, COORD pos, ConsoleColor bColor, ConsoleColor tColor)
-{
-	DWORD dw;
-	char* nextLine;
-	
-	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
-	nextLine = strtok(str, "\n");
-	while (nextLine != NULL)
-	{
-		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], pos);
-		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], nextLine, strlen(nextLine), &dw, NULL);
-		nextLine = strtok(NULL, "\n");
-		pos.Y++;
-	}
-}
-
-void renderRedEffectScreen()
-{
-	ConsoleColor bColor = _RED_, tColor = _WHITE_;
-	COORD zero = { 0, 0 };
-	DWORD dw;
-	char bufferString[_SCREEN_WIDTH_*_SCREEN_HEIGHT_+1];
-	int i, j;
-	
-	clearScreen();
-	
-	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], zero);
-	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
-	bufferString[0] = '\0';
-	for (i = 0; i < _SCREEN_HEIGHT_; i++)
-	{
-		for (j = 0; j < _SCREEN_WIDTH_; j++)
-		{
-			strcat(bufferString, " ");
-		}
-		strcat(bufferString, "\n");
-	}
-	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], bufferString, strlen(bufferString), &dw, NULL);
-}
-
-/* Not swapping screen buffer. */
-void printScreen()
-{
-	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
-}
-
-void printMainMenuScreen()
-{
-	while (1)
-	{
-		if (_kbhit())
-		{
-			break;
-		}
-	}
-}
-
-void printRenderedScreen(char* bufferString, ConsoleColor bColor, ConsoleColor tColor)
-{
-	COORD pos = { 0, 0 };
-	DWORD dw;
-	
-	clearScreen();
-	
-	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], pos);
-	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
-	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], bufferString, strlen(bufferString), &dw, NULL);
-	
-	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
-	swapScreenIndex();
-}
-
-void clearScreen()	
-{
-	COORD pos = { 0, 0 };
-	DWORD dw;
-	char bufferString[(_SCREEN_WIDTH_*2)*_SCREEN_HEIGHT_+1];
-	int i, j;
-	
-	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], pos);
-	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], _WHITE_ | (_BLACK_ << 4));
-	bufferString[0] = '\0';
-	for (i = 0; i < _SCREEN_HEIGHT_; i++)
-	{
-		for (j = 0; j < _SCREEN_WIDTH_; j++)
-		{
-			strcat(bufferString, " ");
-		}
-		strcat(bufferString, "\n");
-	}
-	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], bufferString, strlen(bufferString), &dw, NULL);
-}
-
-void releaseScreen()
-{
-	CloseHandle(screenBuffer.buffer[0]);
-	CloseHandle(screenBuffer.buffer[1]);
 }
 
 void showStageClearScreen(int stageIndex)
@@ -445,43 +470,9 @@ int showStageSelectScreen(int maxStage, int currentStage)
 	return -1;
 }
 
-void showMainMenuScreen()
-{
-	ConsoleColor bColor = _GREEN_, tColor = _BLACK_;
-	COORD titlePos = { 0, (int)(_SCREEN_HEIGHT_ * 0.3) }, contentPos = { 0, (int)(_SCREEN_HEIGHT_ * 0.75) };
-	DWORD dw;
-	BlinkingStringData contentData;
-	char title[64], content[64];
-	char bufferString[(_MAP_WIDTH_*2)*_MAP_HEIGHT_+1] = "";
-	int i, j;
-	
-	sprintf(title, "Sokoban : 19 Song JaeUk in Hansung Univ.");
-	titlePos.X = (int)((_SCREEN_WIDTH_ - strlen(title)) * 0.5);
-	sprintf(content, "Press Any Key");
-	contentPos.X = (int)((_SCREEN_WIDTH_ - strlen(content)) * 0.5);
-	
-	/* Fill screen with background color. */
-	fillColorToScreen(bColor, tColor);
-	
-	/* Print title. */
-	renderToCurrentScreen(title, titlePos, bColor, tColor);
-	
-	/* Begin thread to print 'press any key'. */
-	contentData.str = content;
-	contentData.lifetime = 1000;	// 1.0sec
-	contentData.delay = 200;		// 0.2sec
-	contentData.bColor = bColor;
-	contentData.tColor = tColor;
-	_beginthreadex(NULL, 0, showBlinkingString, &contentData, 0, NULL);
-	
-	while (1)
-	{
-		if (_kbhit())
-		{
-			return;
-		}
-	}
-}
+
+
+/* Red Effect */
 
 void showRedEffectScreen()
 {
@@ -491,12 +482,15 @@ void showRedEffectScreen()
 	Sleep(10); // 0.05sec
 }
 
-void fillColorToScreen(ConsoleColor bColor, ConsoleColor tColor)
-{	
+void renderRedEffectScreen()
+{
+	ConsoleColor bColor = _RED_, tColor = _WHITE_;
 	COORD zero = { 0, 0 };
 	DWORD dw;
-	char bufferString[(_SCREEN_WIDTH_*2)*_SCREEN_HEIGHT_+1] = "";
+	char bufferString[_SCREEN_WIDTH_*_SCREEN_HEIGHT_+1];
 	int i, j;
+	
+	clearScreen();
 	
 	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], zero);
 	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));

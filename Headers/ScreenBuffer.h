@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdbool.h>
+
 #include "BaseData.h"
 
 typedef struct ScreenBuffer
@@ -17,19 +19,25 @@ typedef struct StageSelectBox
 
 extern ScreenBuffer screenBuffer;
 
-void swapScreenIndex();
-void renderStageMapScreen();
-void renderToCurrentScreen(char*, COORD, ConsoleColor, ConsoleColor);
-void renderRedEffectScreen();
-void printScreen();
-void printMainMenuScreen();
-void printRenderedScreen(char*, ConsoleColor, ConsoleColor);
+void printScreen(char*, COORD, bool);
+void printScreen(void*(void), bool);
 void clearScreen();
+void swapScreenIndex();
+void fillColorToScreen(ConsoleColor, ConsoleColor, bool);
 void releaseScreen();
+void showRedEffect();
+
+/* Utils 				- must be removed */
+void renderToCurrentScreen(char*, COORD, ConsoleColor, ConsoleColor);
+void printRenderedScreen(char*, ConsoleColor, ConsoleColor);
+
+/* Stage etc... 		- must be removed */
+void renderStageMapScreen();
 void showStageClearScreen(int);
 void showLoadingStageScreen(int);
 Flag showStageRestartScreen();
 int showStageSelectScreen(int, int);
-void showMainMenuScreen();
+
+/* Red Effect 			- must be removed */
+void renderRedEffectScreen();
 void showRedEffectScreen();
-void fillColorToScreen(ConsoleColor, ConsoleColor);
