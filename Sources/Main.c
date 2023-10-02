@@ -1,5 +1,5 @@
 #include "../Headers/BaseData.h"
-#include "../Headers/DisplayGame.h"
+#include "../Headers/ScreenBuffer.h"
 #include "../Headers/MainMenu.h"
 
 int main()

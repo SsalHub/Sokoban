@@ -1,10 +1,12 @@
+#include "../Headers/BaseData.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <Windows.h>	// about console
 #include <direct.h>		// about reading dir and file
+#include <dirent.h>
 #include <process.h>	// about thread
 
-#include "../Headers/BaseData.h"
 #include "../Headers/ScreenBuffer.h"
 #include "../Headers/ExceptionHandler.h"
 
@@ -85,12 +87,12 @@ Flag translatePlayerPos(int x, int y)
 	/* If player tried get out of the Map */
 	if (newX < 0 || mapData.width <= newX)
 	{
-		showRedEffectScreen();
+		showRedEffect();
 		return _BLOCKED_;
 	}
 	if (newY < 0 || mapData.height <= newY)
 	{
-		showRedEffectScreen();
+		showRedEffect();
 		return _BLOCKED_;
 	}
 	
@@ -98,7 +100,7 @@ Flag translatePlayerPos(int x, int y)
 	switch (mapData.map[newY][newX])
 	{
 		case _BLOCK_:
-			showRedEffectScreen();
+			showRedEffect();
 			return _BLOCKED_;
 			
 		case _FILLED_BOX_:
@@ -134,12 +136,12 @@ Flag pushBall(int ballX, int ballY)
 	/* If tried to push out of the Map */
 	if (destX < 0 || mapData.width <= destX)
 	{
-		showRedEffectScreen();
+		showRedEffect();
 		return _BLOCKED_;
 	}
 	if (destY < 0 || mapData.height <= destY)
 	{
-		showRedEffectScreen();
+		showRedEffect();
 		return _BLOCKED_;
 	}
 	
@@ -147,7 +149,7 @@ Flag pushBall(int ballX, int ballY)
 	{
 		case _BLOCK_:
 		case _FILLED_BOX_:
-			showRedEffectScreen();
+			showRedEffect();
 			return _BLOCKED_;
 			
 		case _EMPTY_BOX_:
@@ -171,12 +173,12 @@ Flag pushFilledBox(int boxX, int boxY)
 	/* If tried to push out of the Map */
 	if (destX < 0 || mapData.width <= destX)
 	{
-		showRedEffectScreen();
+		showRedEffect();
 		return _BLOCKED_;
 	}
 	if (destY < 0 || mapData.height <= destY)
 	{
-		showRedEffectScreen();
+		showRedEffect();
 		return _BLOCKED_;
 	}
 	
@@ -185,7 +187,7 @@ Flag pushFilledBox(int boxX, int boxY)
 		case _BLOCK_:
 		case _FILLED_BOX_:
 		case _BALL_:
-			showRedEffectScreen();
+			showRedEffect();
 			return _BLOCKED_;
 			
 		case _EMPTY_BOX_:

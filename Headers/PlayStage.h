@@ -1,4 +1,7 @@
 #pragma once
 
+#include "BaseData.h"
+
 void playStage();
-void playGame(int);
+Flag playGame(int);
+Flag confirmRestartStage();

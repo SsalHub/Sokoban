@@ -1,3 +1,5 @@
+#include "../Headers/ScreenBuffer.h"
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
@@ -5,15 +7,14 @@
 #include <process.h>
 
 #include "../Headers/BaseData.h"
-#include "../Headers/ScreenBuffer.h"
 #include "../Headers/ExceptionHandler.h"
 
 ScreenBuffer screenBuffer;
 
 void printString(char* str, COORD pos, bool bSwap)
 {
-	DWOWD dw;
-	char* nextline;
+	DWORD dw;
+	char* nextLine;
 	
 	clearScreen();
 	nextLine = strtok(str, "\n");
@@ -28,7 +29,7 @@ void printString(char* str, COORD pos, bool bSwap)
 	if (bSwap) swapScreenIndex();
 }
 
-void printScreen(void (*render)(void), bool bSwap)
+void printScreen(void render(void), bool bSwap)
 {
 	clearScreen();
 	render();
@@ -36,7 +37,7 @@ void printScreen(void (*render)(void), bool bSwap)
 	if (bSwap) swapScreenIndex();
 }
 
-void printStageSelectScreen(void (*render)(int maxStage, int stageIndex), bool bSwap)
+void printStageSelectScreen(void render(int, int), int maxStage, int stageIndex, bool bSwap)
 {
 	clearScreen();
 	render(maxStage, stageIndex);
@@ -108,7 +109,7 @@ void showRedEffect()
 /* MainMenu */
 void renderMainMenuScreen()
 {
-	ConsoleColor bColor = _DARK_PURPLE_, tColor = _BLUE_;
+	ConsoleColor bColor = _DARK_PURPLE_, tColor = _WHITE_;
 	COORD titlePos = { 0, (int)(_SCREEN_HEIGHT_ * 0.3) }, contentPos = { 0, (int)(_SCREEN_HEIGHT_ * 0.75) };
 	DWORD dw;
 	char title[64], content[64];
@@ -145,11 +146,11 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 	char* nextLine;
 	int i, j, centerAlignX, centerAlignY, currentStageIndex = stageIndex;
 	
-	fillColorToScreen(bColor, tColor);
+	fillColorToScreen(bColor, tColor, false);
 	
 	/* Print each arrows. */
-	renderToCurrentScreen(leftArrowStr, leftArrowPos, bColor, tColor);
-	renderToCurrentScreen(rightArrowStr, rightArrowPos, bColor, tColor);
+	printString(leftArrowStr, leftArrowPos, false);
+	printString(rightArrowStr, rightArrowPos, false);
 	
 	j = (int)(strlen("¦£¦¡¦¡¦¡¦¤\n") * 1.5);
 	/* Initialize stage select box. */
@@ -246,8 +247,6 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 		nextLine = strtok(NULL, "\n");
 		stageStructurePos.Y++;
 	}
-	centeredMapPos.X = centerAlignX;
-	centeredMapPos.Y = centerAlignY;
 }
 
 /* StageLoading */
@@ -292,7 +291,6 @@ void renderConfirmRestartScreen()
 	
 	titlePos.X = (int)((_SCREEN_WIDTH_ - strlen(title)) * 0.5);
 	contentPos.X = (int)((_SCREEN_WIDTH_ - strlen(content)) * 0.5);
-	
 	
 	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], titlePos);
 	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], title, strlen(title), &dw, NULL);

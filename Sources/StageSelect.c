@@ -1,10 +1,10 @@
+#include "../Headers/StageSelect.h"
 
 #include <Windows.h>
 #include <direct.h>
 #include <dirent.h>
 
 #include "../Headers/BaseData.h"
-#include "../Headers/DisplayGame.h"
 #include "../Headers/ScreenBuffer.h"
 #include "../Headers/ExceptionHandler.h"
 
@@ -21,7 +21,7 @@ void loadStageSelect(int stageIndex)
 	while (1)
 	{
 	
-		printStageSelectScreen(renderStageSelectScreen(maxStage, currentStage), true);
+		printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true);
 		
 		input = _getch();
 		switch (input)

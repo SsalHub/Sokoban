@@ -1,3 +1,5 @@
+#include "../Headers/PlayStage.h"
+
 #include <stdio.h>
 #include <time.h>
 #include <conio.h>
@@ -5,10 +7,10 @@
 
 #include "../Headers/BaseData.h"
 #include "../Headers/ScreenBuffer.h"
-#include "../Headers/PlayStage.h"
 
 void playStage()
 {
+	Flag flag;
 	int stageIndex = 1;
 	
 	while(1)
@@ -18,12 +20,13 @@ void playStage()
 		loadMapData(stageIndex);
 		printScreen(renderStageLoadingScreen, true);
 		
-		flag = displayGame(stageIndex);
+		flag = playGame(stageIndex);
 		
 		switch (flag)
 		{
 			case _STAGE_CLEAR_:
-				showStageClearScreen(stageIndex++);
+				printScreen(renderStageClearScreen, true);
+				stageIndex++;
 				break;
 			case _STAGE_RESTART_:
 				/* Get back to loading screen without increasing stageIndex. */
@@ -37,7 +40,7 @@ void playStage()
 	}
 }
 
-void playGame(int stageIndex)
+Flag playGame(int stageIndex)
 {
 	char input;
 	Flag flag;
@@ -65,13 +68,13 @@ void playGame(int stageIndex)
 					break;
 				case _UPPER_R_:
 				case _LOWER_R_:
-					if (showStageRestartScreen() == _STAGE_RESTART_)
+					if (confirmRestartStage() == _STAGE_RESTART_)
 						flag = _STAGE_RESTART_;
 					break;
 				case _SPACE_:
 					break;
 				case _ESCAPE_:
-					exitGame();
+					// Pause 구현 예정 
 				default:
 					break;
 			}
@@ -81,9 +84,7 @@ void playGame(int stageIndex)
 			break;
 		
 		/* Render and Print Stage(= map) data on bufferString(= char* bufferString). */
-		renderStageMapScreen();
-		printScreen();
-		swapScreenIndex();
+		printScreen(renderStageMapScreen, true);
 		
 		if (flag == _STAGE_CLEAR_)
 			break;
@@ -95,6 +96,29 @@ void playGame(int stageIndex)
 			return _STAGE_CLEAR_;
 		case _STAGE_RESTART_:
 			return _STAGE_RESTART_;
+	}
+}
+
+Flag confirmRestartStage()
+{
+	char input;
+	
+	printScreen(renderConfirmRestartScreen, true);
+	
+	while (1)
+	{
+		if (_kbhit())
+		{
+			input = _getch();
+			switch (input)
+			{
+				case _ESCAPE_:
+				case _LEFT_:
+					return _FALSE_;
+				case _RIGHT_:
+					return _STAGE_RESTART_;
+			}
+		}
 	}
 }
 

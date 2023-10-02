@@ -21,15 +21,15 @@ extern ScreenBuffer screenBuffer;
 
 /* Basic screen functions */
 void printString(char*, COORD, bool);
-void printScreen(void*(void), bool);
-void printStageSelectScreen(void*(int, int), bool);
+void printScreen(void (void), bool);
+void printStageSelectScreen(void (int, int), int, int, bool);
 void clearScreen();
 void swapScreenIndex();
 void fillColorToScreen(ConsoleColor, ConsoleColor, bool);
 void releaseScreen();
+void showRedEffect(); 				// Red Effect
 
 /* Render functions */
-void showRedEffect(); 				// Red Effect
 void renderMainMenuScreen();		// MainMenu
 void renderStageSelectScreen();		// Stage Select
 void renderStageLoadingScreen();	// Stage Loading

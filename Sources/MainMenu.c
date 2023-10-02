@@ -1,8 +1,9 @@
 #include <stdbool.h>
 #include <conio.h>
 
+#include "../Headers/BaseData.h"
 #include "../Headers/ScreenBuffer.h"
-#include "../Headers/StageSelect.h"
+#include "../Headers/PlayStage.h"
 
 void loadMainMenu()
 {
