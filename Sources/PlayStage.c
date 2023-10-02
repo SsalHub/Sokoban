@@ -6,7 +6,7 @@
 #include <Windows.h>
 
 #include "../Headers/BaseData.h"
-#include "../Headers/ScreenBuffer.h"
+#include "../Headers/ScreenRender.h"
 
 void playStage()
 {

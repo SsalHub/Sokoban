@@ -1,8 +1,13 @@
-
 #include "../Headers/ExceptionHandler.h"
+
+#include <stdio.h>
+#include <Windows.h>
+
+#include "../Headers/BaseData.h"
 
 void throwFatalException(ExceptionType e)
 {
+	releaseMapDataDLL();
 	switch (e)
 	{
 		case _UNKNOWN_EXCEPTION_:

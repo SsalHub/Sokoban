@@ -75,11 +75,20 @@ typedef struct MapData
 	int boxCount;
 	int map[_MAP_HEIGHT_][_MAP_WIDTH_];
 	int structure[_MAP_HEIGHT_][_MAP_WIDTH_];
-	Position box[_MAP_WIDTH_ * _MAP_HEIGHT_];
+	Position box[_MAP_WIDTH_*_MAP_HEIGHT_];
 } MapData;
+
+typedef struct MapDataDoublyLinkedList
+{
+	struct MapDataDoublyLinkedList* before;
+	struct MapDataDoublyLinkedList* after;
+	Mapdata mapData;
+} MapDataDLL;
 
 extern Position player;
 extern MapData mapData;
+extern MapDataDLL* head;
+extern MapDataDLL* tail;
 
 void fortestfunc();
 
@@ -91,6 +100,7 @@ Flag pushFilledBox(int, int);
 void changePositionState(int, int, GameObject);
 bool EqualsWithPlayerPos(int, int);
 void exitGame();
-void loadMapData(int);
 bool checkClearStage();
 int countMaxStage();
+void loadMapData(MapData*, int);
+void releaseMapDataDLL();

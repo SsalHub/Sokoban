@@ -101,7 +101,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit8]
-FileName=Headers\ScreenBuffer.h
+FileName=Headers\ScreenRender.h
 CompileCpp=0
 Folder=Headers
 Compile=1
@@ -111,7 +111,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit9]
-FileName=Sources\ScreenBuffer.c
+FileName=Sources\ScreenRender.c
 CompileCpp=0
 Folder=Sources
 Compile=1
