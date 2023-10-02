@@ -19,25 +19,20 @@ typedef struct StageSelectBox
 
 extern ScreenBuffer screenBuffer;
 
-void printScreen(char*, COORD, bool);
+/* Basic screen functions */
+void printString(char*, COORD, bool);
 void printScreen(void*(void), bool);
+void printStageSelectScreen(void*(int, int), bool);
 void clearScreen();
 void swapScreenIndex();
 void fillColorToScreen(ConsoleColor, ConsoleColor, bool);
 void releaseScreen();
-void showRedEffect();
 
-/* Utils 				- must be removed */
-void renderToCurrentScreen(char*, COORD, ConsoleColor, ConsoleColor);
-void printRenderedScreen(char*, ConsoleColor, ConsoleColor);
-
-/* Stage etc... 		- must be removed */
-void renderStageMapScreen();
-void showStageClearScreen(int);
-void showLoadingStageScreen(int);
-Flag showStageRestartScreen();
-int showStageSelectScreen(int, int);
-
-/* Red Effect 			- must be removed */
-void renderRedEffectScreen();
-void showRedEffectScreen();
+/* Render functions */
+void showRedEffect(); 				// Red Effect
+void renderMainMenuScreen();		// MainMenu
+void renderStageSelectScreen();		// Stage Select
+void renderStageLoadingScreen();	// Stage Loading
+void renderConfirmRestartScreen();	// Confirm Stage Restart
+void renderStageClearScreen();		// Stage Clear
+void renderStageMapScreen();		// Stage Map Data

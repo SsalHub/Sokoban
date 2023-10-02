@@ -294,3 +294,32 @@ bool checkClearStage()
 	}
 	return true;
 }
+
+int countMaxStage()
+{
+	char mapDataPath[1000] = "";
+    struct dirent *dir;
+    DIR *dp;
+    int stageCount;
+
+	_getcwd(mapDataPath, 1000);		// path of root of this project directory
+	strcat(mapDataPath, "\\Maps\\");
+	stageCount = 0;
+	
+	/* If stage map data dir not exists */
+    if ((dp = opendir(mapDataPath)) == NULL)
+    {
+		throwFatalException(_STAGE_FILE_NOT_FOUND_);
+    }
+
+    while ((dir = readdir(dp)) != NULL)
+    {
+    	/* If found file is myself or parent dir */
+        if (strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0)
+            continue;
+
+        stageCount++;
+    }
+    
+    return stageCount;
+}

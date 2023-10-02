@@ -35,6 +35,7 @@ typedef enum Flag
 	_BLOCKED_,
 	_STAGE_CLEAR_,
 	_STAGE_RESTART_,
+	_STAGE_SELECT_,
 } Flag;
 
 typedef enum GameObject
@@ -92,3 +93,4 @@ bool EqualsWithPlayerPos(int, int);
 void exitGame();
 void loadMapData(int);
 bool checkClearStage();
+int countMaxStage();

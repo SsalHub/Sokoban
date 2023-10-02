@@ -1,5 +1,3 @@
 #pragma once
 
-void loadStageSelect();
-int countStage();
-void renderStageStruct(char*);
+void loadStageSelect(int);

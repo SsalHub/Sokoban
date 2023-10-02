@@ -1,12 +1,43 @@
 #include <stdio.h>
 #include <time.h>
 #include <conio.h>
-#include <windows.h>
+#include <Windows.h>
 
 #include "../Headers/BaseData.h"
 #include "../Headers/ScreenBuffer.h"
+#include "../Headers/PlayStage.h"
 
-Flag displayGame(int stageIndex)
+void playStage()
+{
+	int stageIndex = 1;
+	
+	while(1)
+	{
+		stageIndex = loadStageSelect(stageIndex);
+		
+		loadMapData(stageIndex);
+		printScreen(renderStageLoadingScreen, true);
+		
+		flag = displayGame(stageIndex);
+		
+		switch (flag)
+		{
+			case _STAGE_CLEAR_:
+				showStageClearScreen(stageIndex++);
+				break;
+			case _STAGE_RESTART_:
+				/* Get back to loading screen without increasing stageIndex. */
+				break;	
+			case _STAGE_SELECT_:
+				
+				break;	
+			default:
+				break;
+		}
+	}
+}
+
+void playGame(int stageIndex)
 {
 	char input;
 	Flag flag;

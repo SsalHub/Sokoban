@@ -10,7 +10,7 @@
 
 ScreenBuffer screenBuffer;
 
-void printScreen(char* str, COORD pos, bool bSwap)
+void printString(char* str, COORD pos, bool bSwap)
 {
 	DWOWD dw;
 	char* nextline;
@@ -32,6 +32,14 @@ void printScreen(void (*render)(void), bool bSwap)
 {
 	clearScreen();
 	render();
+	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
+	if (bSwap) swapScreenIndex();
+}
+
+void printStageSelectScreen(void (*render)(int maxStage, int stageIndex), bool bSwap)
+{
+	clearScreen();
+	render(maxStage, stageIndex);
 	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
 	if (bSwap) swapScreenIndex();
 }
@@ -90,54 +98,235 @@ void releaseScreen()
 	CloseHandle(screenBuffer.buffer[1]);
 }
 
+/* Red Effect */
 void showRedEffect()
 {
 	fillColorToScreen(_RED_, _BLACK_, true);
 	Sleep(50);	// 0.05sec
 }
 
-
-
-
-/* Utils - must be removed */
-
-void renderToCurrentScreen(char* str, COORD pos, ConsoleColor bColor, ConsoleColor tColor)
+/* MainMenu */
+void renderMainMenuScreen()
 {
+	ConsoleColor bColor = _DARK_PURPLE_, tColor = _BLUE_;
+	COORD titlePos = { 0, (int)(_SCREEN_HEIGHT_ * 0.3) }, contentPos = { 0, (int)(_SCREEN_HEIGHT_ * 0.75) };
 	DWORD dw;
-	char* nextLine;
+	char title[64], content[64];
+	char bufferString[(_MAP_WIDTH_*2)*_MAP_HEIGHT_+1] = "";
+	int i, j;
+	
+	/* Fill screen with background color. */
+//	_beginthreadex(NULL, 0, showBlinkingString, &contentData, 0, NULL);
+	fillColorToScreen(bColor, tColor, false);
 	
 	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
-	nextLine = strtok(str, "\n");
+	sprintf(title, "Sokoban : 19 Song JaeUk in Hansung Univ.");
+	titlePos.X = (int)((_SCREEN_WIDTH_ - strlen(title)) * 0.5);
+	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], titlePos);	
+	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], title, strlen(title), &dw, NULL);
+	
+	sprintf(content, "Press Any Key");
+	contentPos.X = (int)((_SCREEN_WIDTH_ - strlen(content)) * 0.5);
+	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], contentPos);	
+	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], content, strlen(content), &dw, NULL);
+}
+
+/* Stage Select */
+void renderStageSelectScreen(int maxStage, int stageIndex)
+{
+	ConsoleColor bColor = _OCEAN_BLUE_, tColor = _BLACK_, tSelectedColor = _RED_, tInputColor = _YELLOW_;
+	int stageSelectBoxY = (int)(_SCREEN_HEIGHT_ * 0.3), stageStructureY = (int)(_SCREEN_HEIGHT_ * 0.6);
+	COORD leftArrowPos = { (int)(_SCREEN_WIDTH_ * 0.3), stageSelectBoxY }, rightArrowPos = { (int)(_SCREEN_WIDTH_ * 0.7), stageSelectBoxY };
+	COORD stageStructurePos = { 0, 0 }, zero = { 0, 0 };
+	DWORD dw;
+	StageSelectBox stageSelectBox[3];
+	char leftArrowStr[3] = "←", rightArrowStr[3] = "→", block[3] = "□"; 
+	char stageStructure[(_MAP_WIDTH_*2)*_MAP_HEIGHT_+1] = "";
+	char* nextLine;
+	int i, j, centerAlignX, centerAlignY, currentStageIndex = stageIndex;
+	
+	fillColorToScreen(bColor, tColor);
+	
+	/* Print each arrows. */
+	renderToCurrentScreen(leftArrowStr, leftArrowPos, bColor, tColor);
+	renderToCurrentScreen(rightArrowStr, rightArrowPos, bColor, tColor);
+	
+	j = (int)(strlen("┌───┐\n") * 1.5);
+	/* Initialize stage select box. */
+	for (i = 0; i < 3; i++)
+	{
+		stageSelectBox[i].stageIndex = i + (-1 + currentStageIndex);
+		if (stageSelectBox[i].stageIndex < 1 || maxStage < stageSelectBox[i].stageIndex)
+			continue;
+		
+		stageSelectBox[i].buffer[0] = '\0';
+		sprintf(stageSelectBox[i].buffer,"%s┌───┐\n", stageSelectBox[i].buffer);
+		sprintf(stageSelectBox[i].buffer,"%s│%03d│\n", stageSelectBox[i].buffer, stageSelectBox[i].stageIndex);
+		sprintf(stageSelectBox[i].buffer,"%s└───┘\n", stageSelectBox[i].buffer);
+		stageSelectBox[i].pos.X = (int)(_SCREEN_WIDTH_ * 0.5) + ((-1 + i) * j);
+		stageSelectBox[i].pos.Y = stageSelectBoxY;
+	}
+		
+	/* Print Stage Select Boxes. */
+	for (i = 0; i < 3; i++)
+	{
+		if (stageSelectBox[i].stageIndex < 1 || maxStage < stageSelectBox[i].stageIndex)
+			continue;
+			
+		if (i == 1)
+			SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tSelectedColor | (bColor << 4));
+		else
+			SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+			
+		printString(stageSelectBox[i].buffer, stageSelectBox[i].pos, false);
+	}
+		
+	/* Load currently selected stage's data file. */
+	loadMapData(currentStageIndex);
+	/* Print selected stage's structure. */
+	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+	/* Outside(border) of Map */
+	stageStructure[0] = '\0';
+	for (i = 0; i < mapData.width + 2; i++)
+	{
+		strcat(stageStructure, block);
+	}
+	strcat(stageStructure, "\n");
+	for (i = 0; i < mapData.height; i++)
+	{
+		/* Outside(border) of Map */
+		strcat(stageStructure, block);
+		/* Inside */
+		for (j = 0; j < mapData.width; j++)
+		{
+			
+			/* GameObjects */
+			switch (mapData.map[i][j])
+			{
+				case _NONE_:
+					strcat(stageStructure, "  ");
+					break;
+				case _BLOCK_:
+					strcat(stageStructure, block);
+					break;
+				case _BALL_:
+					strcat(stageStructure, "◎");
+					break;
+				case _EMPTY_BOX_:
+					strcat(stageStructure, "♤");
+					break;
+				case _FILLED_BOX_:
+					strcat(stageStructure, "♠");
+					break;
+				default:
+					break;
+			}
+		}
+		/* Outside(border) of Map */
+		strcat(stageStructure, block);
+		strcat(stageStructure, "\n");
+	}
+	/* Outside(border) of Map */
+	for (i = 0; i < mapData.width + 2; i++)
+	{
+		strcat(stageStructure, block);
+	}
+	strcat(stageStructure, "\n");
+	
+	/* Write stage map string to screen buffer. */
+	centerAlignX = (int)(((_SCREEN_WIDTH_) - ((mapData.width + 2) * 2)) * 0.5);
+	stageStructurePos.X = centerAlignX;
+	centerAlignY = (int)((_SCREEN_HEIGHT_ - mapData.height) * 0.5) - 1;
+	stageStructurePos.Y = centerAlignY;
+	nextLine = strtok(stageStructure, "\n");
 	while (nextLine != NULL)
 	{
-		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], pos);
+		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], stageStructurePos);
 		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], nextLine, strlen(nextLine), &dw, NULL);
 		nextLine = strtok(NULL, "\n");
-		pos.Y++;
+		stageStructurePos.Y++;
+	}
+	centeredMapPos.X = centerAlignX;
+	centeredMapPos.Y = centerAlignY;
+}
+
+/* StageLoading */
+void renderStageLoadingScreen()
+{
+	ConsoleColor bColor = _SKYBLUE_, tColor = _BLACK_;
+	COORD pos = { 0, (int)(_SCREEN_HEIGHT_ * 0.5)};
+	DWORD dw;
+	char loadingText[_SCREEN_WIDTH_+1];
+	int loop, slen;
+	const int LOOPMAX = 3;
+	
+	fillColorToScreen(bColor, tColor, false);
+	
+	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+	sprintf(loadingText, "Stage Loading");
+	for (loop = 0; loop < LOOPMAX; loop++)
+	{
+		strcat(loadingText, " .");
+		slen = strlen(loadingText);
+		
+		pos.X = (int)((_SCREEN_WIDTH_ - slen) * 0.5);
+		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], pos);	
+		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], loadingText, slen, &dw, NULL);
+		Sleep(200);	// 0.2sec
 	}
 }
 
-void printRenderedScreen(char* bufferString, ConsoleColor bColor, ConsoleColor tColor)
+/* ConfirmRestart */
+void renderConfirmRestartScreen()
 {
-	COORD pos = { 0, 0 };
+	ConsoleColor bColor = _GREEN_, tColor = _BLACK_;
+	COORD titlePos = { 0, (int)(_SCREEN_HEIGHT_ * 0.3) }, contentPos = { 0, (int)(_SCREEN_HEIGHT_ * 0.7) };
 	DWORD dw;
+	char title[64] = "", content[64] = "";
+	int i, j;
 	
-	clearScreen();
+	fillColorToScreen(bColor, tColor, false);
 	
-	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], pos);
-	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
-	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], bufferString, strlen(bufferString), &dw, NULL);
+	sprintf(title, 		"이 스테이지를 처음부터 다시 진행하시겠습니까?"			);
+	sprintf(content, 	"← 이어서 계속 진행     |    처음부터 다시 진행 →"	);
 	
-	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
-	swapScreenIndex();
+	titlePos.X = (int)((_SCREEN_WIDTH_ - strlen(title)) * 0.5);
+	contentPos.X = (int)((_SCREEN_WIDTH_ - strlen(content)) * 0.5);
+	
+	
+	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], titlePos);
+	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], title, strlen(title), &dw, NULL);
+	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], contentPos);
+	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], content, strlen(content), &dw, NULL);
 }
 
+/* StageClear */
+void renderStageClearScreen()
+{
+	ConsoleColor bColor = _LIGHT_YELLOW_, tColor = _BLACK_;
+	COORD pos = { 0, (int)(_SCREEN_HEIGHT_ * 0.5)};
+	DWORD dw;
+	char stageClearText[_SCREEN_WIDTH_+1];
+	int loop, slen;
+	const int LOOPMAX = 3;
+	
+	fillColorToScreen(bColor, tColor, false);
+	
+	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+	sprintf(stageClearText, "Stage Clear");
+	for (loop = 0; loop < LOOPMAX; loop++)
+	{
+		strcat(stageClearText, " .");
+		slen = strlen(stageClearText);
+		
+		pos.X = (int)((_SCREEN_WIDTH_ - slen) * 0.5);
+		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], pos);	
+		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], stageClearText, slen, &dw, NULL);
+		Sleep(300);	// 0.3sec
+	}
+}
 
-
-
-
-/* Stage etc... */
-
+/* Stage Map Data */
 void renderStageMapScreen()
 {
 	ConsoleColor bColor = _DARK_PURPLE_, tColor = _BLUE_, tPlayerColor = _YELLOW_;
@@ -223,285 +412,4 @@ void renderStageMapScreen()
 	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], playerPos);
 	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tPlayerColor | (bColor << 4));
 	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], playerCharacter, strlen(playerCharacter), &dw, NULL);
-}
-
-void showStageClearScreen(int stageIndex)
-{
-	char bufferString[(_SCREEN_WIDTH_*2)*_SCREEN_HEIGHT_+1];
-	char stageClearText[_SCREEN_WIDTH_+1];
-	int i, j, loop, idx, bufferIndex = 0, slen;
-	
-	sprintf(stageClearText, "Stage%02d Clear", stageIndex);
-	for (loop = 0; loop < 5; loop++)
-	{
-		strcat(stageClearText, " !");
-		slen = strlen(stageClearText);
-		bufferString[0] = '\0';
-		for (i = 0; i < _SCREEN_HEIGHT_ ; i++)
-		{
-			if (i == (int)(_SCREEN_HEIGHT_ * 0.5))
-			{
-				for (j = 0; j < (int)((_SCREEN_WIDTH_ - slen) * 0.5); j++)
-				{
-					strcat(bufferString, " ");
-				}
-				strcat(bufferString, stageClearText);
-				for (j = 0; j < (int)((_SCREEN_WIDTH_ - slen) * 0.5) + 1; j++)
-				{
-					strcat(bufferString, " ");
-				}
-			}
-			else
-			{
-				for (j = 0; j < _SCREEN_WIDTH_; j++)
-				{
-					strcat(bufferString, " ");
-				}
-			}
-			strcat(bufferString, "\n");
-		}
-		printRenderedScreen(bufferString, _LIGHT_YELLOW_, _BLACK_);
-		Sleep(300);	// 0.3sec
-	}
-}
-
-void showLoadingStageScreen(int stageIndex)
-{
-	char bufferString[(_SCREEN_WIDTH_*2)*_SCREEN_HEIGHT_+1];
-	char loadingText[_SCREEN_WIDTH_+1];
-	int i, j, loop, idx, bufferIndex = 0, slen;
-	
-	sprintf(loadingText, "Stage%02d Loading", stageIndex);
-	for (loop = 0; loop < 3; loop++)
-	{
-		strcat(loadingText, " .");
-		slen = strlen(loadingText);
-		bufferString[0] = '\0';
-		for (i = 0; i < _SCREEN_HEIGHT_ ; i++)
-		{
-			/* Print loading text on center of screen. */
-			if (i == (int)(_SCREEN_HEIGHT_ * 0.5))
-			{
-				for (j = 0; j < (int)((_SCREEN_WIDTH_ - slen) * 0.5); j++)
-				{
-					strcat(bufferString, " ");
-				}
-				strcat(bufferString, loadingText);
-				for (j = 0; j < (int)((_SCREEN_WIDTH_ - slen) * 0.5) + 1; j++)
-				{
-					strcat(bufferString, " ");
-				}
-			}
-			else
-			{
-				for (j = 0; j < _SCREEN_WIDTH_; j++)
-				{
-					strcat(bufferString, " ");
-				}
-			}
-			strcat(bufferString, "\n");
-		}
-		printRenderedScreen(bufferString, _SKYBLUE_, _BLACK_);
-		Sleep(300);	// 0.3sec
-	}
-}
-
-Flag showStageRestartScreen()
-{
-	COORD pos = { 0, 0 };
-	DWORD dw;
-	char bufferString[(_SCREEN_WIDTH_*2)*_SCREEN_HEIGHT_+1];
-	char title[64] 		= "";
-	char content[64] 	= "";
-	char input;
-	int i, j, tlen, clen;
-	
-	sprintf(title, "이 스테이지를 처음부터 다시 진행하시겠습니까?");
-	sprintf(content, "← 돌아가기        |        처음부터 다시하기 →");
-	tlen = strlen(title);
-	clen = strlen(content);
-	bufferString[0] = '\0';
-	for (i = 0; i < _SCREEN_HEIGHT_; i++)
-	{
-		if (i == ((int)(_SCREEN_HEIGHT_ * 0.5) - 2))
-		{
-			for (j = 0; j < (int)((_SCREEN_WIDTH_-tlen)*0.5); j++)
-			{
-				strcat(bufferString, " ");
-			}
-			strcat(bufferString, title);
-			for (j = 0; j < (int)((_SCREEN_WIDTH_-tlen)*0.5+1); j++)
-			{
-				strcat(bufferString, " ");
-			}
-		}
-		else if (i == ((int)(_SCREEN_HEIGHT_ * 0.5) + 2))
-		{
-			for (j = 0; j < (int)((_SCREEN_WIDTH_-clen)*0.5); j++)
-			{
-				strcat(bufferString, " ");
-			}
-			strcat(bufferString, content);
-			for (j = 0; j < (int)((_SCREEN_WIDTH_-clen)*0.5+1); j++)
-			{
-				strcat(bufferString, " ");
-			}
-		}
-		else
-		{
-			for (j = 0; j < _SCREEN_WIDTH_; j++)
-			{
-				strcat(bufferString, " ");
-			}
-		}
-		strcat(bufferString, "\n");
-	}
-	printRenderedScreen(bufferString, _GREEN_, _BLACK_);
-	
-	while (1)
-	{
-		if (_kbhit())
-		{
-			input = _getch();
-			switch (input)
-			{
-				case _ESCAPE_:
-				case _LEFT_:
-					return _FALSE_;
-				case _RIGHT_:
-					return _STAGE_RESTART_;
-				default:
-					break;
-			}
-		}
-	}
-	return _FALSE_;
-}
-
-int showStageSelectScreen(int maxStage, int currentStage)
-{
-	ConsoleColor bColor = _OCEAN_BLUE_, tColor = _BLACK_, tSelectedColor = _RED_, tInputColor = _YELLOW_;
-	int stageSelectBoxY = (int)(_SCREEN_HEIGHT_ * 0.3), stageStructureY = (int)(_SCREEN_HEIGHT_ * 0.6);
-	COORD leftArrowPos = { (int)(_SCREEN_WIDTH_ * 0.2), stageSelectBoxY }, rightArrowPos = { (int)(_SCREEN_WIDTH_ * 0.8), stageSelectBoxY };
-	COORD stageStructurePos = { 0, stageStructureY }, zero = { 0, 0 };
-	DWORD dw;
-	StageSelectBox stageSelectBox[3];
-	char leftArrowStr[3] = "←", rightArrowStr[3] = "→"; 
-	char stageStructure[(_MAP_WIDTH_*2)*_MAP_HEIGHT_+1] = "";
-	char input;
-	int i, j, currentChangedIndex = currentStage;
-	
-	
-	while (1)
-	{
-		
-		/* Initialize stage select box. */
-		for (i = 0; i < 3; i++)
-		{
-			stageSelectBox[i].stageIndex = i + (-1 + currentChangedIndex);
-			if (stageSelectBox[i].stageIndex < 1 || maxStage < stageSelectBox[i].stageIndex)
-				continue;
-			
-			sprintf(stageSelectBox[i].buffer,"┌───┐\n");
-			j = (int)(strlen(stageSelectBox[i].buffer) * 1.5);
-			sprintf(stageSelectBox[i].buffer,"┌───┐\n│%03d│\n└───┘\n", stageSelectBox[i].stageIndex);
-			stageSelectBox[i].pos.X = (int)(_SCREEN_WIDTH_ * 0.5) + ((-1 + i) * j);
-			stageSelectBox[i].pos.Y = stageSelectBoxY;
-		}
-		
-		fillColorToScreen(bColor, tColor);
-		
-		/* Print each arrows. */
-		renderToCurrentScreen(leftArrowStr, leftArrowPos, bColor, tColor);
-		renderToCurrentScreen(rightArrowStr, rightArrowPos, bColor, tColor);
-		
-		/* Print Stage Select Boxes. */
-		for (i = 0; i < 3; i++)
-		{
-			if (stageSelectBox[i].stageIndex < 1 || maxStage < stageSelectBox[i].stageIndex)
-				continue;
-				
-			if (i == 1)
-				renderToCurrentScreen(stageSelectBox[i].buffer, stageSelectBox[i].pos, bColor, tSelectedColor);
-			else
-				renderToCurrentScreen(stageSelectBox[i].buffer, stageSelectBox[i].pos, bColor, tColor);
-		}
-		
-//		/* Print currently selected stage's map structure. */
-//		loadMapData(currentChangedIndex);
-//		renderStageMap(stageStructure);
-//		stageStructurePos.X = (int)((_SCREEN_WIDTH_ - (mapData.width + 2) * 2) * 0.5);
-//		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], stageStructurePos);
-//		SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
-//		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], stageStructure, strlen(stageStructure), &dw, NULL);
-//		
-		/* Print actual buffer and swap */
-		SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
-		swapScreenIndex();
-		
-		if (_kbhit())
-		{
-			input = _getch();
-			switch (input)
-			{
-				case _ESCAPE_:
-				case _LEFT_:
-					if (currentChangedIndex - 1 < 1) break;
-					renderToCurrentScreen(leftArrowStr, leftArrowPos, bColor, tInputColor);
-					currentChangedIndex = currentChangedIndex - 1;
-					Sleep(100);	// 0.1sec
-					break;
-				case _RIGHT_:
-					if (maxStage < currentChangedIndex + 1) break;
-					renderToCurrentScreen(rightArrowStr, rightArrowPos, bColor, tInputColor);
-					currentChangedIndex = currentChangedIndex + 1;
-					Sleep(100);	// 0.1sec
-					break;
-				case _SPACE_:
-				case _CARRIGE_RETURN_:
-					/* select ok */
-					return currentChangedIndex;
-				default:
-					break;
-			}
-		}
-	}
-	throwFatalException(_UNKNOWN_EXCEPTION_);
-	return -1;
-}
-
-
-
-/* Red Effect */
-
-void showRedEffectScreen()
-{
-	renderRedEffectScreen();
-	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
-	swapScreenIndex();
-	Sleep(10); // 0.05sec
-}
-
-void renderRedEffectScreen()
-{
-	ConsoleColor bColor = _RED_, tColor = _WHITE_;
-	COORD zero = { 0, 0 };
-	DWORD dw;
-	char bufferString[_SCREEN_WIDTH_*_SCREEN_HEIGHT_+1];
-	int i, j;
-	
-	clearScreen();
-	
-	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], zero);
-	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
-	bufferString[0] = '\0';
-	for (i = 0; i < _SCREEN_HEIGHT_; i++)
-	{
-		for (j = 0; j < _SCREEN_WIDTH_; j++)
-		{
-			strcat(bufferString, " ");
-		}
-		strcat(bufferString, "\n");
-	}
-	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], bufferString, strlen(bufferString), &dw, NULL);
 }
