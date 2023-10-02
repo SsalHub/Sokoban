@@ -136,9 +136,9 @@ void renderMainMenuScreen()
 void renderStageSelectScreen(int maxStage, int stageIndex)
 {
 	ConsoleColor bColor = _OCEAN_BLUE_, tColor = _BLACK_, tSelectedColor = _RED_, tInputColor = _YELLOW_;
-	int stageSelectBoxY = (int)(_SCREEN_HEIGHT_ * 0.3), stageStructureY = (int)(_SCREEN_HEIGHT_ * 0.6);
+	int stageSelectBoxY = (int)(_SCREEN_HEIGHT_ * 0.3), stageStructureY = (int)(_SCREEN_HEIGHT_ * 0.55);
 	COORD leftArrowPos = { (int)(_SCREEN_WIDTH_ * 0.3), stageSelectBoxY }, rightArrowPos = { (int)(_SCREEN_WIDTH_ * 0.7), stageSelectBoxY };
-	COORD stageStructurePos = { 0, 0 }, zero = { 0, 0 };
+	COORD stageStructurePos = { 0, stageStructureY }, zero = { 0, 0 };
 	DWORD dw;
 	StageSelectBox stageSelectBox[3];
 	char leftArrowStr[3] = "¡ç", rightArrowStr[3] = "¡æ", block[3] = "¡à"; 
@@ -237,8 +237,6 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 	/* Write stage map string to screen buffer. */
 	centerAlignX = (int)(((_SCREEN_WIDTH_) - ((mapData.width + 2) * 2)) * 0.5);
 	stageStructurePos.X = centerAlignX;
-	centerAlignY = (int)((_SCREEN_HEIGHT_ - mapData.height) * 0.5) - 1;
-	stageStructurePos.Y = centerAlignY;
 	nextLine = strtok(stageStructure, "\n");
 	while (nextLine != NULL)
 	{

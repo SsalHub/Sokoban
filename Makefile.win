@@ -4,8 +4,8 @@
 CPP      = g++.exe
 CC       = gcc.exe
 WINDRES  = windres.exe
-OBJ      = Sources/BaseData.o Sources/Main.o Sources/StageSelect.o Sources/MainMenu.o Sources/ExceptionHandler.o Sources/ScreenBuffer.o Sources/PlayStage.o
-LINKOBJ  = Sources/BaseData.o Sources/Main.o Sources/StageSelect.o Sources/MainMenu.o Sources/ExceptionHandler.o Sources/ScreenBuffer.o Sources/PlayStage.o
+OBJ      = Sources/BaseData.o Sources/Main.o Sources/MainMenu.o Sources/ExceptionHandler.o Sources/ScreenBuffer.o Sources/PlayStage.o
+LINKOBJ  = Sources/BaseData.o Sources/Main.o Sources/MainMenu.o Sources/ExceptionHandler.o Sources/ScreenBuffer.o Sources/PlayStage.o
 LIBS     = -L"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib" -L"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/lib" -static-libgcc
 INCS     = -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include"
 CXXINCS  = -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include/c++"
@@ -29,9 +29,6 @@ Sources/BaseData.o: Sources/BaseData.c
 
 Sources/Main.o: Sources/Main.c
 	$(CC) -c Sources/Main.c -o Sources/Main.o $(CFLAGS)
-
-Sources/StageSelect.o: Sources/StageSelect.c
-	$(CC) -c Sources/StageSelect.c -o Sources/StageSelect.o $(CFLAGS)
 
 Sources/MainMenu.o: Sources/MainMenu.c
 	$(CC) -c Sources/MainMenu.c -o Sources/MainMenu.o $(CFLAGS)
