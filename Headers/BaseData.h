@@ -82,7 +82,7 @@ typedef struct MapDataDoublyLinkedList
 {
 	struct MapDataDoublyLinkedList* before;
 	struct MapDataDoublyLinkedList* after;
-	Mapdata mapData;
+	MapData mapData;
 } MapDataDLL;
 
 extern Position player;
@@ -91,7 +91,6 @@ extern MapDataDLL* head;
 extern MapDataDLL* tail;
 
 void fortestfunc();
-
 void initGame();
 void setPlayerPos(int, int);
 Flag translatePlayerPos(int, int);
@@ -104,3 +103,5 @@ bool checkClearStage();
 int countMaxStage();
 void loadMapData(MapData*, int);
 void releaseMapDataDLL();
+void setMapData(MapData*, int);
+void cleanInputBuffer();

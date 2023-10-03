@@ -13,11 +13,13 @@ void playStage()
 	Flag flag;
 	int stageIndex = 1;
 	
+	flag = _STAGE_SELECT_;
 	while(1)
 	{
-		stageIndex = loadStageSelect(stageIndex);
+		if (flag == _STAGE_SELECT_)
+			stageIndex = loadStageSelect(stageIndex);
 		
-		loadMapData(stageIndex);
+		loadMapData(&mapData, stageIndex);
 		printScreen(renderStageLoadingScreen, true);
 		
 		flag = playGame(stageIndex);
@@ -32,7 +34,6 @@ void playStage()
 				/* Get back to loading screen without increasing stageIndex. */
 				break;	
 			case _STAGE_SELECT_:
-				
 				break;	
 			default:
 				break;
@@ -43,52 +44,57 @@ void playStage()
 int loadStageSelect(int stageIndex)
 {
 	Flag flag;
-	char bufferString[(_SCREEN_WIDTH_*2)*_SCREEN_HEIGHT_+1];
 	char input;
 	int maxStage, currentStage;
 	
 	maxStage = countMaxStage();
 	currentStage = stageIndex;
 	
+//	cleanInputBuffer();
+	
 	while (1)
 	{
-	
 		printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true);
 		
-		input = _getch();
-		switch (input)
+		if (_kbhit())
 		{
-			case _ESCAPE_:
-			case _LEFT_:
-				if (currentStage - 1 < 1) 
-					showRedEffect();
-				else
-					currentStage = currentStage - 1;
-					
-				Sleep(500);	// 0.5sec
-				break;
-			case _RIGHT_:
-				if (maxStage < currentStage + 1)
-					showRedEffect();
-				else
-					currentStage = currentStage + 1;
-					
-				Sleep(500);	// 0.5sec
-				break;
-			case _SPACE_:
-			case _CARRIGE_RETURN_:
-				/* select ok */
-				return currentStage;
-			default:
-				break;
+			input = _getch();
+			switch (input)
+			{
+				case _ESCAPE_:
+				case _LEFT_:
+					if (currentStage <= 1) 
+						showRedEffect();
+					else
+						currentStage = currentStage - 1;
+						
+					Sleep(500);	// 0.5sec
+					break;
+				case _RIGHT_:
+					if (maxStage <= currentStage)
+						showRedEffect();
+					else
+						currentStage = currentStage + 1;
+						
+					Sleep(500);	// 0.5sec
+					break;
+				case _SPACE_:
+				case _CARRIGE_RETURN_:
+					/* select ok */
+					return currentStage;
+				default:
+					break;
+			}
 		}
 	}
 }
 
 Flag playGame(int stageIndex)
 {
-	char input;
 	Flag flag;
+	char input;
+	
+//	cleanInputBuffer();
 	
 	while (1)
 	{

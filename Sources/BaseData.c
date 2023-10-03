@@ -50,29 +50,29 @@ void initGame()
 		if (i == 1)
 		{
 			node = (MapDataDLL*)malloc(sizeof(MapDataDLL));
-			node.before = NULL;
-			node.after = NULL;
-			loadMapData(&(node.mapData), i);
+			node->before = NULL;
+			node->after = NULL;
+			loadMapData(&(node->mapData), i);
 			head = node;
 			continue;
 		}
 		
 		if (i == maxStage)
 		{
-			node.after = (MapDataDLL*)malloc(sizeof(MapDataDLL));
-			node.after.before = node;
-			node = node.after;
-			node.after = NULL;
-			loadMapData(&(node.mapData), i);
+			node->after = (MapDataDLL*)malloc(sizeof(MapDataDLL));
+			node->after->before = node;
+			node = node->after;
+			node->after = NULL;
+			loadMapData(&(node->mapData), i);
 			tail = node;
 			break;
 		}
 		
-		node.after = (MapDataDLL*)malloc(sizeof(MapDataDLL));
-		node.after.before = node;
-		node = node.after;
-		node.after = NULL;
-		loadMapData(&(node.mapData), i);
+		node->after = (MapDataDLL*)malloc(sizeof(MapDataDLL));
+		node->after->before = node;
+		node = node->after;
+		node->after = NULL;
+		loadMapData(&(node->mapData), i);
 	}
 }
 
@@ -345,4 +345,30 @@ void releaseMapDataDLL()
 	
 	head = NULL;
 	tail = NULL;
+}
+
+void setMapData(MapData* dest, int index)
+{
+	MapDataDLL* node = head;
+	int i;
+	
+	for (i = 0; node != NULL && i < index; i++)
+	{
+		node = node->after;
+	}
+	if (node == NULL)
+		throwFatalException(_STAGE_FILE_NOT_FOUND_);
+		
+	dest->stageIndex 	= node->mapData.stageIndex;
+	dest->width 		= node->mapData.width;
+	dest->height		= node->mapData.height;
+	dest->boxCount		= node->mapData.boxCount;
+	memcpy(dest->map, node->mapData.map, sizeof(node->mapData.map));
+	memcpy(dest->structure, node->mapData.structure, sizeof(node->mapData.structure));
+	memcpy(dest->box, node->mapData.box, sizeof(node->mapData.box));
+}
+
+void cleanInputBuffer()
+{
+	while (getchar() != '\0') continue;
 }

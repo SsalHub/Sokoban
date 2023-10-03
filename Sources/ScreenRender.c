@@ -1,4 +1,4 @@
-#include "../Headers/ScreenBuffer.h"
+#include "../Headers/ScreenRender.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -142,9 +142,10 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 	DWORD dw;
 	StageSelectBox stageSelectBox[3];
 	char leftArrowStr[3] = "¡ç", rightArrowStr[3] = "¡æ", block[3] = "¡à"; 
-	char stageStructure[(_MAP_WIDTH_*2)*_MAP_HEIGHT_+1] = "";
+	char stageStructureString[(_MAP_WIDTH_*2)*_MAP_HEIGHT_+1] = "";
+	MapData stageStructure;
 	char* nextLine;
-	int i, j, centerAlignX, centerAlignY, currentStageIndex = stageIndex;
+	int i, j, centerAlignX, centerAlignY;
 	
 	fillColorToScreen(bColor, tColor, false);
 	
@@ -156,7 +157,7 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 	/* Initialize stage select box. */
 	for (i = 0; i < 3; i++)
 	{
-		stageSelectBox[i].stageIndex = i + (-1 + currentStageIndex);
+		stageSelectBox[i].stageIndex = i + (-1 + stageIndex);
 		if (stageSelectBox[i].stageIndex < 1 || maxStage < stageSelectBox[i].stageIndex)
 			continue;
 		
@@ -181,63 +182,62 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 			
 		printString(stageSelectBox[i].buffer, stageSelectBox[i].pos, false);
 	}
-		
-	/* Load currently selected stage's data file. */
-	loadMapData(currentStageIndex);
+	
+	setMapData(&stageStructure, stageIndex);
 	/* Print selected stage's structure. */
 	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
 	/* Outside(border) of Map */
-	stageStructure[0] = '\0';
-	for (i = 0; i < mapData.width + 2; i++)
+	stageStructureString[0] = '\0';
+	for (i = 0; i < stageStructure.width + 2; i++)
 	{
-		strcat(stageStructure, block);
+		strcat(stageStructureString, block);
 	}
-	strcat(stageStructure, "\n");
-	for (i = 0; i < mapData.height; i++)
+	strcat(stageStructureString, "\n");
+	for (i = 0; i < stageStructure.height; i++)
 	{
 		/* Outside(border) of Map */
-		strcat(stageStructure, block);
+		strcat(stageStructureString, block);
 		/* Inside */
-		for (j = 0; j < mapData.width; j++)
+		for (j = 0; j < stageStructure.width; j++)
 		{
 			
 			/* GameObjects */
-			switch (mapData.map[i][j])
+			switch (stageStructure.map[i][j])
 			{
 				case _NONE_:
-					strcat(stageStructure, "  ");
+					strcat(stageStructureString, "  ");
 					break;
 				case _BLOCK_:
-					strcat(stageStructure, block);
+					strcat(stageStructureString, block);
 					break;
 				case _BALL_:
-					strcat(stageStructure, "¡Ý");
+					strcat(stageStructureString, "¡Ý");
 					break;
 				case _EMPTY_BOX_:
-					strcat(stageStructure, "¢»");
+					strcat(stageStructureString, "¢»");
 					break;
 				case _FILLED_BOX_:
-					strcat(stageStructure, "¢¼");
+					strcat(stageStructureString, "¢¼");
 					break;
 				default:
 					break;
 			}
 		}
 		/* Outside(border) of Map */
-		strcat(stageStructure, block);
-		strcat(stageStructure, "\n");
+		strcat(stageStructureString, block);
+		strcat(stageStructureString, "\n");
 	}
 	/* Outside(border) of Map */
-	for (i = 0; i < mapData.width + 2; i++)
+	for (i = 0; i < stageStructure.width + 2; i++)
 	{
-		strcat(stageStructure, block);
+		strcat(stageStructureString, block);
 	}
-	strcat(stageStructure, "\n");
+	strcat(stageStructureString, "\n");
 	
 	/* Write stage map string to screen buffer. */
-	centerAlignX = (int)(((_SCREEN_WIDTH_) - ((mapData.width + 2) * 2)) * 0.5);
+	centerAlignX = (int)(((_SCREEN_WIDTH_) - ((stageStructure.width + 2) * 2)) * 0.5);
 	stageStructurePos.X = centerAlignX;
-	nextLine = strtok(stageStructure, "\n");
+	nextLine = strtok(stageStructureString, "\n");
 	while (nextLine != NULL)
 	{
 		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], stageStructurePos);
