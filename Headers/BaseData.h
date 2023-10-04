@@ -104,4 +104,3 @@ int countMaxStage();
 void loadMapData(MapData*, int);
 void releaseMapDataDLL();
 void setMapData(MapData*, int);
-void cleanInputBuffer();

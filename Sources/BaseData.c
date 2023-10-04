@@ -367,8 +367,3 @@ void setMapData(MapData* dest, int index)
 	memcpy(dest->structure, node->mapData.structure, sizeof(node->mapData.structure));
 	memcpy(dest->box, node->mapData.box, sizeof(node->mapData.box));
 }
-
-void cleanInputBuffer()
-{
-	while (getchar() != '\0') continue;
-}

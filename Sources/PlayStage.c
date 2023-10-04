@@ -20,14 +20,14 @@ void playStage()
 			stageIndex = loadStageSelect(stageIndex);
 		
 		loadMapData(&mapData, stageIndex);
-		printScreen(renderStageLoadingScreen, true);
+		printScreen(renderStageLoadingScreen, true, true);
 		
 		flag = playGame(stageIndex);
 		
 		switch (flag)
 		{
 			case _STAGE_CLEAR_:
-				printScreen(renderStageClearScreen, true);
+				printScreen(renderStageClearScreen, true, true);
 				stageIndex++;
 				break;
 			case _STAGE_RESTART_:
@@ -52,7 +52,7 @@ int loadStageSelect(int stageIndex)
 	
 //	cleanInputBuffer();
 	
-	printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true);
+	printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true, true);
 	while (1)
 	{
 		if (_kbhit())
@@ -67,7 +67,7 @@ int loadStageSelect(int stageIndex)
 					else
 						currentStage = currentStage - 1;
 					
-					printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true);
+					printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true, true);
 					Sleep(1000);	// 1.0sec
 					break;
 				case _RIGHT_:
@@ -76,7 +76,7 @@ int loadStageSelect(int stageIndex)
 					else
 						currentStage = currentStage + 1;
 						
-					printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true);
+					printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true, true);
 					Sleep(1000);	// 1.0sec
 					break;
 				case _SPACE_:
@@ -136,7 +136,7 @@ Flag playGame(int stageIndex)
 			break;
 		
 		/* Render and Print Stage(= map) data on bufferString(= char* bufferString). */
-		printScreen(renderStageMapScreen, true);
+		printScreen(renderStageMapScreen, true, true);
 		
 		if (flag == _STAGE_CLEAR_)
 			break;
@@ -155,7 +155,7 @@ Flag confirmRestartStage()
 {
 	char input;
 	
-	printScreen(renderConfirmRestartScreen, true);
+	printScreen(renderConfirmRestartScreen, true, true);
 	
 	while (1)
 	{
