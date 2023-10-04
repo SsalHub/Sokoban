@@ -20,12 +20,12 @@ typedef struct StageSelectBox
 extern ScreenBuffer screenBuffer;
 
 /* Basic screen functions */
-void printString(char*, COORD, bool);
-void printScreen(void (void), bool);
-void printStageSelectScreen(void (int, int), int, int, bool);
+void printString(char*, COORD, bool, bool);
+void printScreen(void (void), bool, bool);
+void printStageSelectScreen(void (int, int), int, int, bool, bool);
 void clearScreen();
 void swapScreenIndex();
-void fillColorToScreen(ConsoleColor, ConsoleColor, bool);
+void fillColorToScreen(ConsoleColor, ConsoleColor);
 void releaseScreen();
 void showRedEffect(); 				// Red Effect
 

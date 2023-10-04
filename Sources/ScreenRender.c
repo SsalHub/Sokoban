@@ -4,19 +4,19 @@
 #include <stdbool.h>
 #include <string.h>
 #include <Windows.h>
-#include <process.h>
 
 #include "../Headers/BaseData.h"
 #include "../Headers/ExceptionHandler.h"
 
 ScreenBuffer screenBuffer;
 
-void printString(char* str, COORD pos, bool bSwap)
+void printString(char* str, COORD pos, bool bClear, bool bSwap)
 {
 	DWORD dw;
 	char* nextLine;
 	
-	clearScreen();
+	if (bClear) clearScreen();
+	
 	nextLine = strtok(str, "\n");
 	while (nextLine != NULL)
 	{
@@ -29,17 +29,17 @@ void printString(char* str, COORD pos, bool bSwap)
 	if (bSwap) swapScreenIndex();
 }
 
-void printScreen(void render(void), bool bSwap)
+void printScreen(void render(void), bool bClear, bool bSwap)
 {
-	clearScreen();
+	if (bClear) clearScreen();
 	render();
 	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
 	if (bSwap) swapScreenIndex();
 }
 
-void printStageSelectScreen(void render(int, int), int maxStage, int stageIndex, bool bSwap)
+void printStageSelectScreen(void render(int, int), int maxStage, int stageIndex, bool bClear, bool bSwap)
 {
-	clearScreen();
+	if (bClear) clearScreen();
 	render(maxStage, stageIndex);
 	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
 	if (bSwap) swapScreenIndex();
@@ -69,9 +69,10 @@ void clearScreen()
 void swapScreenIndex()
 {
 	screenBuffer.currentIndex = !(screenBuffer.currentIndex);
+	clearScreen();
 }
 
-void fillColorToScreen(ConsoleColor bColor, ConsoleColor tColor, bool bSwap)
+void fillColorToScreen(ConsoleColor bColor, ConsoleColor tColor)
 {	
 	COORD zero = { 0, 0 };
 	DWORD dw;
@@ -90,7 +91,6 @@ void fillColorToScreen(ConsoleColor bColor, ConsoleColor tColor, bool bSwap)
 		strcat(bufferString, "\n");
 	}
 	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], bufferString, strlen(bufferString), &dw, NULL);
-	if (bSwap) swapScreenIndex();
 }
 
 void releaseScreen()
@@ -102,7 +102,9 @@ void releaseScreen()
 /* Red Effect */
 void showRedEffect()
 {
-	fillColorToScreen(_RED_, _BLACK_, true);
+	fillColorToScreen(_RED_, _WHITE_);
+	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
+	swapScreenIndex();
 	Sleep(50);	// 0.05sec
 }
 
@@ -118,7 +120,7 @@ void renderMainMenuScreen()
 	
 	/* Fill screen with background color. */
 //	_beginthreadex(NULL, 0, showBlinkingString, &contentData, 0, NULL);
-	fillColorToScreen(bColor, tColor, false);
+	fillColorToScreen(bColor, tColor);
 	
 	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
 	sprintf(title, "Sokoban : 19 Song JaeUk in Hansung Univ.");
@@ -144,16 +146,16 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 	char leftArrowStr[3] = "←", rightArrowStr[3] = "→", block[3] = "□"; 
 	char stageStructureString[(_MAP_WIDTH_*2)*_MAP_HEIGHT_+1] = "";
 	MapData stageStructure;
-	char* nextLine;
-	int i, j, centerAlignX, centerAlignY;
+	float boxPositionWeight[3] = { -0.1, 0, 0.1 };
+	int i, j, boxWidth, centerAlignX, centerAlignY;
 	
-	fillColorToScreen(bColor, tColor, false);
+	fillColorToScreen(bColor, tColor);
 	
 	/* Print each arrows. */
-	printString(leftArrowStr, leftArrowPos, false);
-	printString(rightArrowStr, rightArrowPos, false);
+	printString(leftArrowStr, leftArrowPos, false, false);
+	printString(rightArrowStr, rightArrowPos, false, false);
 	
-	j = (int)(strlen("┌───┐\n") * 1.5);
+	boxWidth = strlen("┌───┐");
 	/* Initialize stage select box. */
 	for (i = 0; i < 3; i++)
 	{
@@ -165,7 +167,7 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 		sprintf(stageSelectBox[i].buffer,"%s┌───┐\n", stageSelectBox[i].buffer);
 		sprintf(stageSelectBox[i].buffer,"%s│%03d│\n", stageSelectBox[i].buffer, stageSelectBox[i].stageIndex);
 		sprintf(stageSelectBox[i].buffer,"%s└───┘\n", stageSelectBox[i].buffer);
-		stageSelectBox[i].pos.X = (int)(_SCREEN_WIDTH_ * 0.5) + ((-1 + i) * j);
+		stageSelectBox[i].pos.X = (int)((_SCREEN_WIDTH_ - boxWidth) * (0.5 + boxPositionWeight[i]));
 		stageSelectBox[i].pos.Y = stageSelectBoxY;
 	}
 		
@@ -180,7 +182,7 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 		else
 			SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
 			
-		printString(stageSelectBox[i].buffer, stageSelectBox[i].pos, false);
+		printString(stageSelectBox[i].buffer, stageSelectBox[i].pos, false, false);
 	}
 	
 	setMapData(&stageStructure, stageIndex);
@@ -234,20 +236,13 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 	}
 	strcat(stageStructureString, "\n");
 	
-	/* Write stage map string to screen buffer. */
 	centerAlignX = (int)(((_SCREEN_WIDTH_) - ((stageStructure.width + 2) * 2)) * 0.5);
 	stageStructurePos.X = centerAlignX;
-	nextLine = strtok(stageStructureString, "\n");
-	while (nextLine != NULL)
-	{
-		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], stageStructurePos);
-		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], nextLine, strlen(nextLine), &dw, NULL);
-		nextLine = strtok(NULL, "\n");
-		stageStructurePos.Y++;
-	}
+	
+	printString(stageStructureString, stageStructurePos, false, false);
 }
 
-/* StageLoading */
+/* Stage Loading */
 void renderStageLoadingScreen()
 {
 	ConsoleColor bColor = _SKYBLUE_, tColor = _BLACK_;
@@ -257,7 +252,7 @@ void renderStageLoadingScreen()
 	int loop, slen;
 	const int LOOPMAX = 3;
 	
-	fillColorToScreen(bColor, tColor, false);
+	fillColorToScreen(bColor, tColor);
 	
 	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
 	sprintf(loadingText, "Stage Loading");
@@ -273,7 +268,7 @@ void renderStageLoadingScreen()
 	}
 }
 
-/* ConfirmRestart */
+/* Confirm Stage Restart */
 void renderConfirmRestartScreen()
 {
 	ConsoleColor bColor = _GREEN_, tColor = _BLACK_;
@@ -282,7 +277,7 @@ void renderConfirmRestartScreen()
 	char title[64] = "", content[64] = "";
 	int i, j;
 	
-	fillColorToScreen(bColor, tColor, false);
+	fillColorToScreen(bColor, tColor);
 	
 	sprintf(title, 		"이 스테이지를 처음부터 다시 진행하시겠습니까?"			);
 	sprintf(content, 	"← 이어서 계속 진행     |    처음부터 다시 진행 →"	);
@@ -296,7 +291,7 @@ void renderConfirmRestartScreen()
 	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], content, strlen(content), &dw, NULL);
 }
 
-/* StageClear */
+/* Stage Clear */
 void renderStageClearScreen()
 {
 	ConsoleColor bColor = _LIGHT_YELLOW_, tColor = _BLACK_;
@@ -306,7 +301,7 @@ void renderStageClearScreen()
 	int loop, slen;
 	const int LOOPMAX = 3;
 	
-	fillColorToScreen(bColor, tColor, false);
+	fillColorToScreen(bColor, tColor);
 	
 	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
 	sprintf(stageClearText, "Stage Clear");

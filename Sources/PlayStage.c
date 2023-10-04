@@ -52,10 +52,9 @@ int loadStageSelect(int stageIndex)
 	
 //	cleanInputBuffer();
 	
+	printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true);
 	while (1)
 	{
-		printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true);
-		
 		if (_kbhit())
 		{
 			input = _getch();
@@ -67,8 +66,9 @@ int loadStageSelect(int stageIndex)
 						showRedEffect();
 					else
 						currentStage = currentStage - 1;
-						
-					Sleep(500);	// 0.5sec
+					
+					printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true);
+					Sleep(1000);	// 1.0sec
 					break;
 				case _RIGHT_:
 					if (maxStage <= currentStage)
@@ -76,7 +76,8 @@ int loadStageSelect(int stageIndex)
 					else
 						currentStage = currentStage + 1;
 						
-					Sleep(500);	// 0.5sec
+					printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true);
+					Sleep(1000);	// 1.0sec
 					break;
 				case _SPACE_:
 				case _CARRIGE_RETURN_:
