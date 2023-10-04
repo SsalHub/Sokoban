@@ -315,9 +315,9 @@ void loadMapData(MapData* dest, int stageIndex)
 			dest->structure[i][j] = buffer[j] - 48;
 			switch (buffer[j] - 48)
 			{
-//				case _PLAYER_:
+				case _PLAYER_:
 //					setPlayerPos(j, i);
-//					break;
+					break;
 				case _EMPTY_BOX_:
 					dest->box[mapData.boxCount].x = j;
 					dest->box[mapData.boxCount].y = i;
@@ -363,7 +363,7 @@ void setMapData(MapData* dest, int index)
 	dest->width 		= node->mapData.width;
 	dest->height		= node->mapData.height;
 	dest->boxCount		= node->mapData.boxCount;
-	memcpy(dest->map, node->mapData.map, sizeof(node->mapData.map));
-	memcpy(dest->structure, node->mapData.structure, sizeof(node->mapData.structure));
-	memcpy(dest->box, node->mapData.box, sizeof(node->mapData.box));
+	memmove(dest->map, node->mapData.map, (node->mapData.width)*(node->mapData.height));
+	memmove(dest->structure, node->mapData.structure, (node->mapData.width)*(node->mapData.height));
+	memmove(dest->box, node->mapData.box, node->mapData.boxCount);
 }

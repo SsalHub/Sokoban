@@ -190,13 +190,13 @@ void renderMainMenuScreen(int selectIndex)
 /* Stage Select */
 void renderStageSelectScreen(int maxStage, int stageIndex)
 {
-	ConsoleColor bColor = _OCEAN_BLUE_, tColor = _BLACK_, tSelectedColor = _RED_, tInputColor = _YELLOW_;
+	ConsoleColor bColor = _OCEAN_BLUE_, tColor = _BLACK_, tSelectedColor = _HOTPINK_, tInputColor = _YELLOW_;
 	int stageSelectBoxY = (int)(_SCREEN_HEIGHT_ * 0.3), stageStructureY = (int)(_SCREEN_HEIGHT_ * 0.55);
 	COORD leftArrowPos = { (int)(_SCREEN_WIDTH_ * 0.3), stageSelectBoxY }, rightArrowPos = { (int)(_SCREEN_WIDTH_ * 0.7), stageSelectBoxY };
 	COORD stageStructurePos = { 0, stageStructureY }, zero = { 0, 0 };
 	DWORD dw;
 	StageSelectBox stageSelectBox[3];
-	char leftArrowStr[3] = "∠", rightArrowStr[3] = "⊥", block[3] = "﹤"; 
+	char leftArrowStr[3] = "９", rightArrowStr[3] = "Ⅱ", block[3] = "﹤"; 
 	char stageStructureString[(_MAP_WIDTH_*2)*_MAP_HEIGHT_+1] = "";
 	MapData stageStructure;
 	float boxPositionWeight[3] = { -0.1, 0, 0.1 };
@@ -217,9 +217,9 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 			continue;
 		
 		stageSelectBox[i].buffer[0] = '\0';
-		sprintf(stageSelectBox[i].buffer,"%s忙式式式忖\n", stageSelectBox[i].buffer);
-		sprintf(stageSelectBox[i].buffer,"%s弛%03d弛\n", stageSelectBox[i].buffer, stageSelectBox[i].stageIndex);
-		sprintf(stageSelectBox[i].buffer,"%s戌式式式戎\n", stageSelectBox[i].buffer);
+		sprintf(stageSelectBox[i].buffer,"%s忙式式式式忖 \n", stageSelectBox[i].buffer);
+		sprintf(stageSelectBox[i].buffer,"%s弛 %03d弛 \n", stageSelectBox[i].buffer, stageSelectBox[i].stageIndex);
+		sprintf(stageSelectBox[i].buffer,"%s戌式式式式戎 \n", stageSelectBox[i].buffer);
 		stageSelectBox[i].pos.X = (int)((_SCREEN_WIDTH_ - boxWidth) * (0.5 + boxPositionWeight[i]));
 		stageSelectBox[i].pos.Y = stageSelectBoxY;
 	}
@@ -237,11 +237,10 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 			
 		printString(stageSelectBox[i].buffer, stageSelectBox[i].pos, false, false);
 	}
-	
 	setMapData(&stageStructure, stageIndex);
-	/* Print selected stage's structure. */
+	
+	/* Print Stage Structure. */
 	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
-	/* Outside(border) of Map */
 	stageStructureString[0] = '\0';
 	for (i = 0; i < stageStructure.width + 2; i++)
 	{
@@ -250,14 +249,10 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 	strcat(stageStructureString, "\n");
 	for (i = 0; i < stageStructure.height; i++)
 	{
-		/* Outside(border) of Map */
 		strcat(stageStructureString, block);
-		/* Inside */
 		for (j = 0; j < stageStructure.width; j++)
 		{
-			
-			/* GameObjects */
-			switch (stageStructure.map[i][j])
+			switch (stageStructure.structure[i][j])
 			{
 				case _NONE_:
 					strcat(stageStructureString, "  ");
@@ -278,18 +273,16 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 					break;
 			}
 		}
-		/* Outside(border) of Map */
 		strcat(stageStructureString, block);
 		strcat(stageStructureString, "\n");
 	}
-	/* Outside(border) of Map */
 	for (i = 0; i < stageStructure.width + 2; i++)
 	{
 		strcat(stageStructureString, block);
 	}
 	strcat(stageStructureString, "\n");
 	
-	centerAlignX = (int)(((_SCREEN_WIDTH_) - ((stageStructure.width + 2) * 2)) * 0.5);
+	centerAlignX = (int)((_SCREEN_WIDTH_- ((stageStructure.width + 2) * 2)) * 0.5);
 	stageStructurePos.X = centerAlignX;
 	
 	printString(stageStructureString, stageStructurePos, false, false);
