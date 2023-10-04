@@ -6,6 +6,7 @@
 #include "../Headers/BaseData.h"
 #include "../Headers/ScreenRender.h"
 #include "../Headers/PlayStage.h"
+#include "../Headers/UtilData.h"
 #include "../Headers/ExceptionHandler.h"
 
 void loadMainMenu()
@@ -42,14 +43,14 @@ int runMainMenu()
 						selectIndex += 1;
 					
 					printMainMenuScreen(renderMainMenuScreen, selectIndex, true, true);
-					Sleep(500);	// 0.5sec
+					WaitForSeconds(0.5);
 					break;
 				case _UP_:
 					if (0 <= selectIndex - 1)
 						selectIndex -= 1;
 						
 					printMainMenuScreen(renderMainMenuScreen, selectIndex, true, true);
-					Sleep(500);	// 0.5sec
+					WaitForSeconds(0.5);
 					break;
 				case _SPACE_:
 				case _CARRIGE_RETURN_:
@@ -59,5 +60,7 @@ int runMainMenu()
 					break;
 			}
 		}
+		
+		input = '\0';
 	}
 }

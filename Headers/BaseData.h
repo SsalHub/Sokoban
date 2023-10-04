@@ -93,6 +93,7 @@ extern MapDataDLL* head;
 extern MapDataDLL* tail;
 
 void fortestfunc();
+
 void initGame();
 void setPlayerPos(int, int);
 Flag translatePlayerPos(int, int);
