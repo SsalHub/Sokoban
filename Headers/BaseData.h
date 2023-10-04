@@ -36,6 +36,8 @@ typedef enum Flag
 	_STAGE_CLEAR_,
 	_STAGE_RESTART_,
 	_STAGE_SELECT_,
+	_START_GAME_,
+	_EXIT_GAME_,
 } Flag;
 
 typedef enum GameObject

@@ -65,7 +65,7 @@ int loadStageSelect(int stageIndex)
 					if (currentStage <= 1) 
 						showRedEffect();
 					else
-						currentStage = currentStage - 1;
+						currentStage -= 1;
 					
 					printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true, true);
 					Sleep(1000);	// 1.0sec
@@ -74,7 +74,7 @@ int loadStageSelect(int stageIndex)
 					if (maxStage <= currentStage)
 						showRedEffect();
 					else
-						currentStage = currentStage + 1;
+						currentStage += 1;
 						
 					printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true, true);
 					Sleep(1000);	// 1.0sec

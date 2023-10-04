@@ -37,6 +37,14 @@ void printScreen(void render(void), bool bClear, bool bSwap)
 	if (bSwap) swapScreenIndex();
 }
 
+void printMainMenuScreen(void render(int), int selectIndex, bool bClear, bool bSwap)
+{
+	if (bClear) clearScreen();
+	render(selectIndex);
+	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
+	if (bSwap) swapScreenIndex();
+}
+
 void printStageSelectScreen(void render(int, int), int maxStage, int stageIndex, bool bClear, bool bSwap)
 {
 	if (bClear) clearScreen();
@@ -109,30 +117,75 @@ void showRedEffect()
 }
 
 /* MainMenu */
-void renderMainMenuScreen()
+void renderMainMenuScreen(int selectIndex)
 {
-	ConsoleColor bColor = _DARK_PURPLE_, tColor = _WHITE_;
-	COORD titlePos = { 0, (int)(_SCREEN_HEIGHT_ * 0.3) }, contentPos = { 0, (int)(_SCREEN_HEIGHT_ * 0.75) };
+	ConsoleColor bColor = _DARK_PURPLE_, tColor = _WHITE_, tSelColor = _YELLOW_;
+	COORD titlePos = { 0, (int)(_SCREEN_HEIGHT_ * 0.3) };
+	COORD contentPos[2], selectedPos;
 	DWORD dw;
-	char title[64], content[64];
+	char title[64], content[2][64], selectedChar[5] = "¢º ";
 	char bufferString[(_MAP_WIDTH_*2)*_MAP_HEIGHT_+1] = "";
-	int i, j;
+	int i, contentPosY = (int)(_SCREEN_HEIGHT_ * 0.75);
 	
-	/* Fill screen with background color. */
-//	_beginthreadex(NULL, 0, showBlinkingString, &contentData, 0, NULL);
 	fillColorToScreen(bColor, tColor);
 	
 	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
 	sprintf(title, "Sokoban : 19 Song JaeUk in Hansung Univ.");
 	titlePos.X = (int)((_SCREEN_WIDTH_ - strlen(title)) * 0.5);
+	
+	sprintf(content[0], "Game Start");
+	contentPos[0].X = (int)((_SCREEN_WIDTH_ - strlen(content[0])) * 0.5);
+	contentPos[0].Y = contentPosY;
+	sprintf(content[1], "Exit Game");
+	contentPos[1].X = (int)((_SCREEN_WIDTH_ - strlen(content[1])) * 0.5);
+	contentPos[1].Y = contentPosY + 1;
+	
 	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], titlePos);	
 	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], title, strlen(title), &dw, NULL);
-	
-	sprintf(content, "Press Any Key");
-	contentPos.X = (int)((_SCREEN_WIDTH_ - strlen(content)) * 0.5);
-	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], contentPos);	
-	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], content, strlen(content), &dw, NULL);
+	for (i = 0; i < 2; i++)
+	{
+		if (i == selectIndex)
+		{
+			SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tSelColor | (bColor << 4));
+			selectedPos.X = contentPos[i].X - 3;
+			selectedPos.Y = contentPos[i].Y;
+		}
+		else
+		{
+			SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+		}
+		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], contentPos[i]);	
+		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], content[i], strlen(content[i]), &dw, NULL);
+	}
+	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tSelColor | (bColor << 4));
+	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], selectedPos);	
+	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], selectedChar, strlen(selectedChar), &dw, NULL);
 }
+// used in post version
+//void renderMainMenuScreen()
+//{
+//	ConsoleColor bColor = _DARK_PURPLE_, tColor = _WHITE_;
+//	COORD titlePos = { 0, (int)(_SCREEN_HEIGHT_ * 0.3) }, contentPos = { 0, (int)(_SCREEN_HEIGHT_ * 0.75) };
+//	DWORD dw;
+//	char title[64], content[64];
+//	char bufferString[(_MAP_WIDTH_*2)*_MAP_HEIGHT_+1] = "";
+//	int i, j;
+//	
+//	/* Fill screen with background color. */
+////	_beginthreadex(NULL, 0, showBlinkingString, &contentData, 0, NULL);
+//	fillColorToScreen(bColor, tColor);
+//	
+//	SetConsoleTextAttribute(screenBuffer.buffer[screenBuffer.currentIndex], tColor | (bColor << 4));
+//	sprintf(title, "Sokoban : 19 Song JaeUk in Hansung Univ.");
+//	titlePos.X = (int)((_SCREEN_WIDTH_ - strlen(title)) * 0.5);
+//	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], titlePos);	
+//	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], title, strlen(title), &dw, NULL);
+//	
+//	sprintf(content, "Press Any Key");
+//	contentPos.X = (int)((_SCREEN_WIDTH_ - strlen(content)) * 0.5);
+//	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], contentPos);	
+//	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], content, strlen(content), &dw, NULL);
+//}
 
 /* Stage Select */
 void renderStageSelectScreen(int maxStage, int stageIndex)
