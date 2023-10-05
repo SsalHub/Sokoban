@@ -266,6 +266,6 @@ void stageClear(int stageIndex)
 	
 	pMapDLL = findMapDataDLL(stageIndex);
 	
-	releasePlayerAction(&(pMapDLL->mapData));
+	releasePlayerHistory(&(pMapDLL->mapData));
 	printStageClearScreen(stageIndex);
 }

@@ -9,8 +9,6 @@
 #define _SCREEN_HEIGHT_     	30
 #define _MAP_WIDTH_         	40
 #define _MAP_HEIGHT_        	20
-#define _CURRENT_MAP_INDEX_		0
-#define _ORIGIN_MAP_INDEX_		1
 
 typedef enum Flag
 {
@@ -36,12 +34,12 @@ typedef enum GameObject
 	_OUT_OF_MAP_    = 6,
 } GameObject;
 
-typedef struct PlayerAction
+typedef struct PlayerHistory
 {
 	COORD movement;
-	struct PlayerAction* before;
-	struct PlayerAction* after;
-} PlayerAction;
+	struct PlayerHistory* before;
+	struct PlayerHistory* after;
+} PlayerHistory;
 
 typedef struct MapData
 {
@@ -50,11 +48,12 @@ typedef struct MapData
 	int height;
 	int boxCount;
 	int currentMove;
-	GameObject map[2][_MAP_HEIGHT_][_MAP_WIDTH_];
+	GameObject currMap[_MAP_HEIGHT_][_MAP_WIDTH_];
+	GameObject originMap[_MAP_HEIGHT_][_MAP_WIDTH_];
 	COORD playerBeginPos;
 	COORD currPlayerPos;
 	COORD originalBoxesPos[_MAP_WIDTH_*_MAP_HEIGHT_];
-	PlayerAction* history;
+	PlayerHistory* history;
 } MapData;
 
 typedef struct MapDataDoublyLinkedList
@@ -77,9 +76,9 @@ void YouWonThisGame();
 /* Load and Read game files, and Initialize game datas about stage map data. */
 int countMaxStage();
 void loadMapData(MapData*, int);
-void pushPlayerAction(MapData*, COORD);
+void pushPlayerHistory(MapData*, COORD);
 void releaseMapDataDLL();
-void releasePlayerAction(MapData*);
+void releasePlayerHistory(MapData*);
 MapDataDLL* findMapDataDLL(int);
 void copyMapData(MapData*, MapData*);
 /* Control playing stage and player. */
