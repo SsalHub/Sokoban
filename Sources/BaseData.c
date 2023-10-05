@@ -100,13 +100,12 @@ int countMaxStage()
     {
 		throwFatalException(_STAGE_FILE_NOT_FOUND_);
     }
-
+    
     while ((dir = readdir(dp)) != NULL)
     {
     	/* If found file is myself or parent dir */
         if (strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0)
             continue;
-
         stageCount++;
     }
     return stageCount;
@@ -148,23 +147,23 @@ void loadMapData(MapData* dest, int stageIndex)
 			switch (buffer[j])
 			{
 				case '-':
-				    dest->map[_ORIGIN_MAP_INDEX_][i][j] = _NONE_;
+				    dest->originMap[i][j] = _NONE_;
 				    break;
 				case 'p':
 //				    dest->structure[i][j] = _PLAYER_;
-				    dest->map[_ORIGIN_MAP_INDEX_][i][j] = _PLAYER_;
+				    dest->originMap[i][j] = _PLAYER_;
 				    dest->playerBeginPos.X = j;
 				    dest->playerBeginPos.Y = i;
 				    dest->currPlayerPos = dest->playerBeginPos;
 					break;
 				case 'w':
-				    dest->map[_ORIGIN_MAP_INDEX_][i][j] = _WALL_;
+				    dest->originMap[i][j] = _WALL_;
 				    break;
 				case 'a':
-				    dest->map[_ORIGIN_MAP_INDEX_][i][j] = _BALL_;
+				    dest->originMap[i][j] = _BALL_;
 				    break;
 				case 'b':
-				    dest->map[_ORIGIN_MAP_INDEX_][i][j] = _EMPTY_BOX_;
+				    dest->originMap[i][j] = _EMPTY_BOX_;
 					dest->originalBoxesPos[dest->boxCount].X = j;
 					dest->originalBoxesPos[dest->boxCount].Y = i;
 					dest->boxCount++;
@@ -172,21 +171,21 @@ void loadMapData(MapData* dest, int stageIndex)
 			}
 		}
 	}
-	memmove(dest->map[_CURRENT_MAP_INDEX_], dest->map[_ORIGIN_MAP_INDEX_], _MAP_WIDTH_*_MAP_HEIGHT_*sizeof(GameObject));
+	memmove(dest->currMap, dest->originMap, _MAP_WIDTH_*_MAP_HEIGHT_*sizeof(GameObject));
 }
 
-void pushPlayerAction(MapData* map, COORD pos)
+void pushPlayerHistory(MapData* map, COORD pos)
 {
 	if (map->history == NULL)
 	{
-		map->history = (PlayerAction*)malloc(sizeof(PlayerAction));
+		map->history = (PlayerHistory*)malloc(sizeof(PlayerHistory));
 		memmove(&(map->history->movement), &pos, sizeof(COORD));
 		map->history->before = NULL;
 		map->history->after = NULL;
 		return;
 	}
 	
-	PlayerAction* node = (PlayerAction*)malloc(sizeof(PlayerAction));
+	PlayerHistory* node = (PlayerHistory*)malloc(sizeof(PlayerHistory));
 	memmove(&(node->movement), &pos, sizeof(COORD));
 	map->history->after = node;
 	node->before = map->history;
@@ -212,10 +211,10 @@ void releaseMapDataDLL()
 	tail = NULL;
 }
 
-void releasePlayerAction(MapData* map)
+void releasePlayerHistory(MapData* map)
 {
-	PlayerAction* node;
-	PlayerAction* del;
+	PlayerHistory* node;
+	PlayerHistory* del;
 	
 	node = map->history;
 	while (node != NULL)
@@ -237,7 +236,6 @@ MapDataDLL* findMapDataDLL(int stageIndex)
 	   node = node->after;
 	   stageIndex--;
     }
-    
 	return node;
 }
 
@@ -247,10 +245,13 @@ void copyMapData(MapData* dest, MapData* src)
 	dest->width = src->width;
 	dest->height = src->height;
 	dest->boxCount = src->boxCount;
-	memmove(&(dest->map), &(src->map), 2*_MAP_WIDTH_*_MAP_HEIGHT_*sizeof(GameObject));
+	dest->currentMove = src->currentMove;
+	memmove(dest->currMap, src->currMap, _MAP_WIDTH_*_MAP_HEIGHT_*sizeof(GameObject));
+	memmove(dest->originMap, src->originMap, _MAP_WIDTH_*_MAP_HEIGHT_*sizeof(GameObject));
 	memmove(&(dest->playerBeginPos), &(src->playerBeginPos), sizeof(COORD));
 	memmove(&(dest->currPlayerPos), &(src->currPlayerPos), sizeof(COORD));
 	memmove(&(dest->originalBoxesPos), &(src->originalBoxesPos), _MAP_WIDTH_*_MAP_HEIGHT_*sizeof(COORD));
+	dest->history = src->history;
 }
 
 
@@ -282,7 +283,7 @@ Flag translatePlayerPos(MapData* map, int x, int y)
 	}
 	
 	/* Check the position where player moved on. */
-	switch (map->map[_CURRENT_MAP_INDEX_][newY][newX])
+	switch (map->currMap[newY][newX])
 	{
 		case _WALL_:
 			showRedEffect();
@@ -312,7 +313,7 @@ Flag translatePlayerPos(MapData* map, int x, int y)
 	
 	setPlayerPos(map, newX, newY);
 	map->currentMove++;
-	pushPlayerAction(map, movement);
+	pushPlayerHistory(map, movement);
 	return _TRUE_;
 }
 
@@ -332,7 +333,7 @@ Flag pushBall(MapData* map, int ballX, int ballY)
 		return _BLOCKED_;
 	}
 	
-	switch (map->map[_CURRENT_MAP_INDEX_][destY][destX])
+	switch (map->currMap[destY][destX])
 	{
 		case _WALL_:
 		case _FILLED_BOX_:
@@ -369,7 +370,7 @@ Flag pushFilledBox(MapData* map, int boxX, int boxY)
 		return _BLOCKED_;
 	}
 	
-	switch (map->map[_CURRENT_MAP_INDEX_][destY][destX])
+	switch (map->currMap[destY][destX])
 	{
 		case _WALL_:
 		case _FILLED_BOX_:
@@ -400,15 +401,15 @@ void changePositionState(MapData* map, int x, int y, GameObject o)
 	*/
 	if (o == _BALL_ || o == _FILLED_BOX_)
 	{
-		map->map[_CURRENT_MAP_INDEX_][y][x] = o;
+		map->currMap[y][x] = o;
 		return;
 	}
-	if (map->map[_ORIGIN_MAP_INDEX_][y][x] == _EMPTY_BOX_)
+	if (map->originMap[y][x] == _EMPTY_BOX_)
 	{
-		map->map[_CURRENT_MAP_INDEX_][y][x] = _EMPTY_BOX_;
+		map->currMap[y][x] = _EMPTY_BOX_;
 		return;
 	}
-	map->map[_CURRENT_MAP_INDEX_][y][x] = o;
+	map->currMap[y][x] = o;
 }
 
 bool EqualsWithPlayerPos(MapData* map, int x, int y)
@@ -423,7 +424,7 @@ Flag undoPlayerAction(MapData* map)
 	if (map->history == NULL)
 		return _FALSE_;
 	
-	PlayerAction* del;
+	PlayerHistory* del;
 	Flag flag;
 	COORD pos;
 	
@@ -433,6 +434,7 @@ Flag undoPlayerAction(MapData* map)
 	free(del);
 	
 	flag = translatePlayerPos(map, -pos.X, -pos.Y);
+	if (flag == _TRUE_) map->currentMove--;
 	
 	return flag;
 }
@@ -443,7 +445,7 @@ bool checkClearStage(MapData* map)
 	
 	for (i = 0; i < map->boxCount; i++)
 	{
-		if (map->map[_CURRENT_MAP_INDEX_][map->originalBoxesPos[i].Y][map->originalBoxesPos[i].X] != _FILLED_BOX_)
+		if (map->currMap[map->originalBoxesPos[i].Y][map->originalBoxesPos[i].X] != _FILLED_BOX_)
 			return false;
 	}
 	return true;

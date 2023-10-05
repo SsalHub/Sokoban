@@ -184,19 +184,54 @@ void renderString(char* str, COORD pos)
 /* MainMenu */
 void renderMainMenuScreen(int selectIndex)
 {
-	ConsoleColor bColor = _HOTPINK_, tColor = _BLACK_, tSelColor = _BLUE_;
-	COORD titlePos = { 0, (int)(_SCREEN_HEIGHT_ * 0.3) };
+	ConsoleColor bColor = _HOTPINK_, tColor = _BLACK_, tTitleColor = _SKY_, tLogoColor = _GREEN_, tSelColor = _BLUE_;
+	COORD titlePos = { 0, (int)(_SCREEN_HEIGHT_ * 0.2) };
 	COORD contentPos[2], selectedPos;
 	DWORD dw;
-	char title[64], content[2][64], selectedChar[5] = "Ⅱ ";
+	char title[_SCREEN_WIDTH_], content[2][64], selectedChar[5] = "Ⅱ ";
 	char bufferString[(_MAP_WIDTH_*2)*_MAP_HEIGHT_+1] = "";
+	char* nextLine;
 	int i, contentPosY = _SCREEN_HEIGHT_ * 0.75;
 	
 	fillColorToScreen(bColor, tColor);
 	
-	sprintf(title, "Sokoban : 19 Song JaeUk in Hansung Univ.");
+	setColor(bColor, tTitleColor);
+	sprintf(title, "19 Song JaeUk in Hansung Univ.");
 	titlePos.X = (_SCREEN_WIDTH_ - strlen(title)) * 0.5;
+	titlePos.Y++;
+	renderString(title, titlePos);
 	
+	titlePos.Y += 2;
+	
+	setColor(bColor, tLogoColor);
+	sprintf(title, "旨收收收收收有收收收收收有旬旨收收收有收收收收收有收收收收旬旨收收收收收有收旬  旨旬 ");
+	titlePos.X = (_SCREEN_WIDTH_ - strlen(title) * 0.5) * 0.5;
+	titlePos.Y++;
+	renderString(title, titlePos);
+	sprintf(title, "早旨收收收旬早旨收收收旬早早早旨收收朽旨收收收旬早旨收收旬早早旨收收收旬早早曲收旬早早 ");
+	titlePos.Y++;
+	renderString(title, titlePos);
+	sprintf(title, "早曲收收收收朽早   早早曲旭旭  早早   早早曲收收旭曲朽早   早早旨收旬曲旭早 ");
+	titlePos.Y++;
+	renderString(title, titlePos);
+	sprintf(title, "曲收收收收旬早早   早早旨旬早  早早   早早旨收收收旬早曲收收收旭早早 曲收旬早 ");
+	titlePos.Y++;
+	renderString(title, titlePos);
+	sprintf(title, "早曲收收收旭早曲收收收旭早早早曲收收朽曲收收收旭早曲收收收旭早旨收收收旬早早   早早 ");
+	titlePos.Y++;
+	renderString(title, titlePos);
+	sprintf(title, "曲收收收收收朴收收收收收朴旭曲收收收朴收收收收收朴收收收收收朴旭   曲朴旭   曲旭 ");
+	titlePos.Y++;
+	renderString(title, titlePos);
+	
+	titlePos.Y += 2;
+	
+	setColor(bColor, tTitleColor);
+	sprintf(title, "Sokoban!");
+	titlePos.X = (_SCREEN_WIDTH_ - strlen(title)) * 0.5;
+	titlePos.Y++;
+	renderString(title, titlePos);
+                 
 	sprintf(content[0], "Game Start");
 	contentPos[0].X = (_SCREEN_WIDTH_ - strlen(content[0])) * 0.5;
 	contentPos[0].Y = contentPosY;
@@ -204,9 +239,6 @@ void renderMainMenuScreen(int selectIndex)
 	contentPos[1].X = (_SCREEN_WIDTH_ - strlen(content[1])) * 0.5;
 	contentPos[1].Y = contentPosY + 1;
 	
-	setColor(bColor, tColor);
-	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], titlePos);	
-	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], title, strlen(title), &dw, NULL);
 	for (i = 0; i < 2; i++)
 	{
 		if (i == selectIndex)
@@ -307,7 +339,7 @@ void renderStageSelectScreen(MapData* map, int maxStage, bool bLeftDown, bool bR
 	   strcat(structure, character[_OUT_OF_MAP_]);
 	   for (j = 0; j < map->width; j++)
 	   {
-	       switch (map->map[_ORIGIN_MAP_INDEX_][i][j])
+	       switch (map->originMap[i][j])
 	       {
 	           case _NONE_:
 	               strcat(structure, character[_NONE_]);
@@ -446,7 +478,7 @@ void renderStageMapScreen(MapData* map)
 //		        strcat(stageMapString, character[_PLAYER_]);
 //				continue;
 //			}
-			switch (map->map[_CURRENT_MAP_INDEX_][i][j])
+			switch (map->currMap[i][j])
 			{
 				case _NONE_:
 		            strcat(stageMapString, character[_NONE_]);
