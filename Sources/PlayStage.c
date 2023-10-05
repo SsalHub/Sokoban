@@ -122,15 +122,23 @@ Flag playGame(MapData* pMap)
 			input = _getch();
 			switch (input)
 			{
+				case _UPPER_A_:
+				case _LOWER_A_:
 				case _LEFT_:
 					flag = translatePlayerPos(&map, -1, 0);
 					break;
+				case _UPPER_D_:
+				case _LOWER_D_:
 				case _RIGHT_:
 					flag = translatePlayerPos(&map, 1, 0);
 					break;
+				case _UPPER_W_:
+				case _LOWER_W_:
 				case _UP_:
 					flag = translatePlayerPos(&map, 0, -1);
 					break;
+				case _UPPER_S_:
+				case _LOWER_S_:
 				case _DOWN_:
 					flag = translatePlayerPos(&map, 0, 1);
 					break;
