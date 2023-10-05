@@ -8,40 +8,34 @@
 #include <process.h>	// about thread
 
 #include "../Headers/ScreenRender.h"
+#include "../Headers/UtilData.h"
 #include "../Headers/ExceptionHandler.h"
 
+char character[7][5];
 Position player;
 MapData mapData;
 MapDataDLL* head;
 MapDataDLL* tail;
 
-void fortestfunc()
+void fortestfunc(char* s)
 {
-	printf("hello\n"); exit(0);
+	printf("%s\n", s); exit(0);
 }
 
 void initGame()
 {
-	char screenInitCommand[50] = "";
 	int i, maxStage;
 	MapDataDLL* node;
 	head = NULL;
 	tail = NULL;
 	
-	sprintf(screenInitCommand, "mode con:cols=%d lines=%d", _SCREEN_WIDTH_, _SCREEN_HEIGHT_);
-	system(screenInitCommand);
-	SetConsoleTitle("Sokoban : 19 Song JaeUk in Hansung Univ.");
-	
-	/* Cursor */
-	CONSOLE_CURSOR_INFO cursor;
-	cursor.dwSize = 1;
-	cursor.bVisible = false;
-	
-	screenBuffer.currentIndex = 0;
-	screenBuffer.buffer[0] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	SetConsoleCursorInfo(screenBuffer.buffer[0], &cursor);
-	screenBuffer.buffer[1] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	SetConsoleCursorInfo(screenBuffer.buffer[1], &cursor);
+	sprintf(character[_NONE_],         "  ");
+	sprintf(character[_PLAYER_],       "¡Ú");
+	sprintf(character[_WALL_],         "¡á");
+	sprintf(character[_BALL_],         "¡Ý");
+	sprintf(character[_EMPTY_BOX_],    "¢»");
+	sprintf(character[_FILLED_BOX_],   "¢¼");
+	sprintf(character[_OUT_OF_MAP_],   "¡Ø");
 	
 	/* Load all map data */
 	maxStage = countMaxStage();
@@ -74,6 +68,8 @@ void initGame()
 		node->after = NULL;
 		loadMapData(&(node->mapData), i);
 	}
+	
+	setPlayerPos(0, 0);
 }
 
 void setPlayerPos(int x, int y)
@@ -102,7 +98,7 @@ Flag translatePlayerPos(int x, int y)
 	/* Check the position where player moved on. */
 	switch (mapData.map[newY][newX])
 	{
-		case _BLOCK_:
+		case _WALL_:
 			showRedEffect();
 			return _BLOCKED_;
 			
@@ -150,7 +146,7 @@ Flag pushBall(int ballX, int ballY)
 	
 	switch (mapData.map[destY][destX])
 	{
-		case _BLOCK_:
+		case _WALL_:
 		case _FILLED_BOX_:
 			showRedEffect();
 			return _BLOCKED_;
@@ -187,7 +183,7 @@ Flag pushFilledBox(int boxX, int boxY)
 	
 	switch (mapData.map[destY][destX])
 	{
-		case _BLOCK_:
+		case _WALL_:
 		case _FILLED_BOX_:
 		case _BALL_:
 			showRedEffect();
@@ -247,7 +243,7 @@ bool checkClearStage()
 	int i;
 	for (i = 0; i < mapData.boxCount; i++)
 	{
-		if (mapData.map[mapData.box[i].y][mapData.box[i].x] != _FILLED_BOX_)
+		if (mapData.map[mapData.originalBoxesPos[i].y][mapData.originalBoxesPos[i].x] != _FILLED_BOX_)
 			return false;
 	}
 	return true;
@@ -278,7 +274,6 @@ int countMaxStage()
 
         stageCount++;
     }
-    
     return stageCount;
 }
 
@@ -298,33 +293,47 @@ void loadMapData(MapData* dest, int stageIndex)
 	fp = fopen(mapDataPath, "r");
 	if (fp == NULL)
 		throwFatalException(_STAGE_FILE_NOT_FOUND_);
-		
+	
+	dest->stageIndex = stageIndex;
+	
 	/* Line 1 in .skb file : Width and Height of Map */
 	fgets(buffer, _MAP_WIDTH_+1, fp);
 	dest->width = atoi(strtok(buffer, " "));
-	dest->height = atoi(buffer);
-	dest->stageIndex = stageIndex;
+	dest->height = atoi(strtok(NULL, " "));
 	
-	mapData.boxCount = 0;
-	for (i = 0; i < mapData.height; i++)
+	dest->boxCount = 0;
+	for (i = 0; i < dest->height; i++)
 	{
 		fgets(buffer, _MAP_WIDTH_+1, fp);
 		
-		for (j = 0; j < mapData.width; j++)
+		for (j = 0; j < dest->width; j++)
 		{
-			dest->structure[i][j] = buffer[j] - 48;
-			switch (buffer[j] - 48)
+			switch (buffer[j])
 			{
-				case _PLAYER_:
-//					setPlayerPos(j, i);
+				case '-':
+				    dest->structure[i][j] = _NONE_;
+				    dest->map[i][j] = _NONE_;
+				    break;
+				case 'p':
+				    dest->map[i][j] = _PLAYER_;
+				    dest->playerBeginPos.x = j;
+				    dest->playerBeginPos.y = i;
 					break;
-				case _EMPTY_BOX_:
-					dest->box[mapData.boxCount].x = j;
-					dest->box[mapData.boxCount].y = i;
+				case 'w':
+				    dest->structure[i][j] = _WALL_;
+				    dest->map[i][j] = _WALL_;
+				    break;
+				case 'a':
+				    dest->structure[i][j] = _BALL_;
+				    dest->map[i][j] = _BALL_;
+				    break;
+				case 'b':
+				    dest->structure[i][j] = _EMPTY_BOX_;
+				    dest->map[i][j] = _EMPTY_BOX_;
 					dest->boxCount++;
-					// It continues to default below.
-				default:
-					dest->map[i][j] = buffer[j] - 48;
+					dest->originalBoxesPos[mapData.boxCount].x = j;
+					dest->originalBoxesPos[mapData.boxCount].y = i;
+					break;
 			}
 		}
 	}	
@@ -347,23 +356,16 @@ void releaseMapDataDLL()
 	tail = NULL;
 }
 
-void setMapData(MapData* dest, int index)
+MapData* findMapData(int index)
 {
-	MapDataDLL* node = head;
-	int i;
+	MapDataDLL* node;
+	int stageIndex = index;
 	
-	for (i = 0; node != NULL && i < index; i++)
+	node = head;
+	while (node != NULL && 1 < stageIndex)
 	{
-		node = node->after;
-	}
-	if (node == NULL)
-		throwFatalException(_STAGE_FILE_NOT_FOUND_);
-		
-	dest->stageIndex 	= node->mapData.stageIndex;
-	dest->width 		= node->mapData.width;
-	dest->height		= node->mapData.height;
-	dest->boxCount		= node->mapData.boxCount;
-	memmove(dest->map, node->mapData.map, (node->mapData.width)*(node->mapData.height));
-	memmove(dest->structure, node->mapData.structure, (node->mapData.width)*(node->mapData.height));
-	memmove(dest->box, node->mapData.box, node->mapData.boxCount);
+	   node = node->after;
+	   stageIndex--;
+    }
+	return &(node->mapData);
 }

@@ -20,20 +20,22 @@ typedef struct StageSelectBox
 extern ScreenBuffer screenBuffer;
 
 /* Basic screen functions */
+void initScreen();
 void printString(char*, COORD, bool, bool);
 void printScreen(void (void), bool, bool);
 void printMainMenuScreen(void (int), int, bool, bool);
-void printStageSelectScreen(void (int, int), int, int, bool, bool);
+void printStageSelectScreen(void (MapData*, int), MapData*, int, bool, bool);
 void clearScreen();
 void swapScreenIndex();
 void fillColorToScreen(ConsoleColor, ConsoleColor);
+void setColor(ConsoleColor, ConsoleColor);
 void releaseScreen();
-void showRedEffect(); 						// Red Effect
+void showRedEffect(); 	// Red Effect
 
 /* Render functions */
-void renderMainMenuScreen(int);				// MainMenu
-void renderStageSelectScreen(int, int);		// Stage Select
-void renderStageLoadingScreen();			// Stage Loading
-void renderConfirmRestartScreen();			// Confirm Stage Restart
-void renderStageClearScreen();				// Stage Clear
-void renderStageMapScreen();				// Stage Map Data
+void renderMainMenuScreen(int);				        // MainMenu
+void renderStageSelectScreen(MapData*, int);        // Stage Select
+void renderStageLoadingScreen();			        // Stage Loading
+void renderConfirmRestartScreen();			        // Confirm Stage Restart
+void renderStageClearScreen();				        // Stage Clear
+void renderStageMapScreen();			     	    // Stage Map Data

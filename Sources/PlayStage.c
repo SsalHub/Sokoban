@@ -6,6 +6,7 @@
 #include <Windows.h>
 
 #include "../Headers/BaseData.h"
+#include "../Headers/UtilData.h"
 #include "../Headers/ScreenRender.h"
 
 void playStage()
@@ -45,14 +46,12 @@ int loadStageSelect(int stageIndex)
 {
 	Flag flag;
 	char input;
-	int maxStage, currentStage;
+	int maxStage, currStage;
 	
 	maxStage = countMaxStage();
-	currentStage = stageIndex;
+	currStage = stageIndex;
 	
-//	cleanInputBuffer();
-	
-	printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true, true);
+	printStageSelectScreen(renderStageSelectScreen, findMapData(currStage), maxStage, true, true);
 	while (1)
 	{
 		if (_kbhit())
@@ -62,27 +61,23 @@ int loadStageSelect(int stageIndex)
 			{
 				case _ESCAPE_:
 				case _LEFT_:
-					if (currentStage <= 1) 
-						showRedEffect();
-					else
-						currentStage -= 1;
+					if (1 < currStage)
+						currStage -= 1;
 					
-					printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true, true);
-					Sleep(1000);	// 1.0sec
+					printStageSelectScreen(renderStageSelectScreen, findMapData(currStage), maxStage, true, true);
+					WaitForSeconds(1);
 					break;
 				case _RIGHT_:
-					if (maxStage <= currentStage)
-						showRedEffect();
-					else
-						currentStage += 1;
+					if (currStage < maxStage)
+						currStage += 1;
 						
-					printStageSelectScreen(renderStageSelectScreen, maxStage, currentStage, true, true);
-					Sleep(1000);	// 1.0sec
+					printStageSelectScreen(renderStageSelectScreen, findMapData(currStage), maxStage, true, true);
+					WaitForSeconds(1);
 					break;
 				case _SPACE_:
 				case _CARRIGE_RETURN_:
 					/* select ok */
-					return currentStage;
+					return currStage;
 				default:
 					break;
 			}

@@ -1,8 +1,17 @@
 #include "../Headers/UtilData.h"
 
+#ifdef _WIN32
 #include <Windows.h>
+#else
+#include <unistd.h>
+#endif
 
 void WaitForSeconds(float s)
 {
-	Sleep((int)(s*1000));
+	int ms = s * 1000;
+	#ifdef _WIN32
+	Sleep(ms);
+	#else
+  	usleep(ms); 
+	#endif
 }
