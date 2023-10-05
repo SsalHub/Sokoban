@@ -5,10 +5,12 @@
 
 #include "UtilData.h"
 
-#define _SCREEN_WIDTH_      120
-#define _SCREEN_HEIGHT_     30
-#define _MAP_WIDTH_         40
-#define _MAP_HEIGHT_        20
+#define _SCREEN_WIDTH_      	120
+#define _SCREEN_HEIGHT_     	30
+#define _MAP_WIDTH_         	40
+#define _MAP_HEIGHT_        	20
+#define _CURRENT_MAP_INDEX_		0
+#define _ORIGIN_MAP_INDEX_		1
 
 typedef enum Flag
 {
@@ -33,22 +35,16 @@ typedef enum GameObject
 	_OUT_OF_MAP_    = 6,
 } GameObject;
 
-typedef struct Position
-{
-	int x;
-	int y;
-} Position;
-
 typedef struct MapData
 {
 	int stageIndex;
 	int width;
 	int height;
 	int boxCount;
-	GameObject map[_MAP_HEIGHT_][_MAP_WIDTH_];
-	GameObject structure[_MAP_HEIGHT_][_MAP_WIDTH_];
-	Position playerBeginPos;
-	Position originalBoxesPos[_MAP_WIDTH_*_MAP_HEIGHT_];
+	GameObject map[2][_MAP_HEIGHT_][_MAP_WIDTH_];
+	COORD playerBeginPos;
+	COORD currPlayerPos;
+	COORD originalBoxesPos[_MAP_WIDTH_*_MAP_HEIGHT_];
 } MapData;
 
 typedef struct MapDataDoublyLinkedList
@@ -59,23 +55,24 @@ typedef struct MapDataDoublyLinkedList
 } MapDataDLL;
 
 extern char character[7][5];        // HEIGHT of array : GameObjects, WIDTH of array : char bytes(unicode)
-extern Position player;
-extern MapData mapData;
 extern MapDataDLL* head;
 extern MapDataDLL* tail;
 
 void fortestfunc(char*);
 
 void initGame();
-void setPlayerPos(int, int);
-Flag translatePlayerPos(int, int);
-Flag pushBall(int, int);
-Flag pushFilledBox(int, int);
-void changePositionState(int, int, GameObject);
-bool EqualsWithPlayerPos(int, int);
 void exitGame();
-bool checkClearStage();
+/* Load and Read game files, and Initialize game datas about stage map data. */
 int countMaxStage();
 void loadMapData(MapData*, int);
 void releaseMapDataDLL();
-MapData* findMapData(int);
+MapDataDLL* findMapDataDLL(int);
+void copyMapData(MapData*, MapData*);
+/* Control playing stage and player. */
+void setPlayerPos(MapData*, int, int);
+Flag translatePlayerPos(MapData*, int, int);
+Flag pushBall(MapData*, int, int);
+Flag pushFilledBox(MapData*, int, int);
+void changePositionState(MapData*, int, int, GameObject);
+bool EqualsWithPlayerPos(MapData*, int, int);
+bool checkClearStage(MapData*);

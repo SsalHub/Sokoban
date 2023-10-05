@@ -4,5 +4,5 @@
 
 void playStage();
 int loadStageSelect(int);
-Flag playGame(int);
+Flag playGame(MapData*);
 Flag confirmRestartStage();

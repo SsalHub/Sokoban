@@ -12,8 +12,6 @@
 #include "../Headers/ExceptionHandler.h"
 
 char character[7][5];
-Position player;
-MapData mapData;
 MapDataDLL* head;
 MapDataDLL* tail;
 
@@ -68,166 +66,6 @@ void initGame()
 		node->after = NULL;
 		loadMapData(&(node->mapData), i);
 	}
-	
-	setPlayerPos(0, 0);
-}
-
-void setPlayerPos(int x, int y)
-{
-	player.x = x;
-	player.y = y;
-}
-
-/* Translate player's position. If success it returns true, or false. */
-Flag translatePlayerPos(int x, int y)
-{
-	int newX = player.x + x, newY = player.y + y;
-	
-	/* If player tried get out of the Map */
-	if (newX < 0 || mapData.width <= newX)
-	{
-		showRedEffect();
-		return _BLOCKED_;
-	}
-	if (newY < 0 || mapData.height <= newY)
-	{
-		showRedEffect();
-		return _BLOCKED_;
-	}
-	
-	/* Check the position where player moved on. */
-	switch (mapData.map[newY][newX])
-	{
-		case _WALL_:
-			showRedEffect();
-			return _BLOCKED_;
-			
-		case _FILLED_BOX_:
-			if (pushFilledBox(newX, newY) == _BLOCKED_) 
-				return _BLOCKED_;
-			else
-				break;
-		case _BALL_:
-			switch (pushBall(newX, newY))
-			{
-				case _TRUE_:
-					break;
-				case _BLOCKED_:
-					return _BLOCKED_;
-				case _STAGE_CLEAR_:
-					setPlayerPos(newX, newY);
-					return _STAGE_CLEAR_;
-			}
-			
-		case _NONE_:
-		case _EMPTY_BOX_:
-			break;
-	}
-	
-	setPlayerPos(newX, newY);
-	return _TRUE_;
-}
-
-Flag pushBall(int ballX, int ballY)
-{
-	int destX = ballX + (ballX - player.x), destY = ballY + (ballY - player.y);
-	
-	/* If tried to push out of the Map */
-	if (destX < 0 || mapData.width <= destX)
-	{
-		showRedEffect();
-		return _BLOCKED_;
-	}
-	if (destY < 0 || mapData.height <= destY)
-	{
-		showRedEffect();
-		return _BLOCKED_;
-	}
-	
-	switch (mapData.map[destY][destX])
-	{
-		case _WALL_:
-		case _FILLED_BOX_:
-			showRedEffect();
-			return _BLOCKED_;
-			
-		case _EMPTY_BOX_:
-			changePositionState(destX, destY, _FILLED_BOX_);
-			if (checkClearStage()) return _STAGE_CLEAR_;
-			break;
-		
-		case _NONE_:
-			changePositionState(destX, destY, _BALL_);
-			break;
-	}
-	
-	changePositionState(ballX, ballY, _NONE_);
-	return _TRUE_;
-}
-
-Flag pushFilledBox(int boxX, int boxY)
-{
-	int destX = boxX + (boxX - player.x), destY = boxY + (boxY - player.y);
-	
-	/* If tried to push out of the Map */
-	if (destX < 0 || mapData.width <= destX)
-	{
-		showRedEffect();
-		return _BLOCKED_;
-	}
-	if (destY < 0 || mapData.height <= destY)
-	{
-		showRedEffect();
-		return _BLOCKED_;
-	}
-	
-	switch (mapData.map[destY][destX])
-	{
-		case _WALL_:
-		case _FILLED_BOX_:
-		case _BALL_:
-			showRedEffect();
-			return _BLOCKED_;
-			
-		case _EMPTY_BOX_:
-			changePositionState(destX, destY, _FILLED_BOX_);
-			break;
-		
-		case _NONE_:
-			changePositionState(destX, destY, _BALL_);
-			break;
-	}
-	
-	changePositionState(boxX, boxY, _EMPTY_BOX_);
-	return _TRUE_;
-}
-
-void changePositionState(int x, int y, GameObject o)
-{
-	/*
-	GameObject Print Priority
-	1. Ball & Filled Box
-	2. Empty Box (not on 'mapData.map[][]' array, 'mapData.structure[][]')
-	3. etc.. (like _NONE_)
-	*/
-	if (o == _BALL_ || o == _FILLED_BOX_)
-	{
-		mapData.map[y][x] = o;
-		return;
-	}
-	if (mapData.structure[y][x] == _EMPTY_BOX_)
-	{
-		mapData.map[y][x] = _EMPTY_BOX_;
-		return;
-	}
-	mapData.map[y][x] = o;
-}
-
-bool EqualsWithPlayerPos(int x, int y)
-{
-	if (player.x == x && player.y == y)
-		return true;
-	return false;
 }
 
 void exitGame()
@@ -238,16 +76,7 @@ void exitGame()
 	exit(0);
 }
 
-bool checkClearStage()
-{
-	int i;
-	for (i = 0; i < mapData.boxCount; i++)
-	{
-		if (mapData.map[mapData.originalBoxesPos[i].y][mapData.originalBoxesPos[i].x] != _FILLED_BOX_)
-			return false;
-	}
-	return true;
-}
+/* Load and Read game files, and Initialize game datas about stage map data. */
 
 int countMaxStage()
 {
@@ -311,39 +140,40 @@ void loadMapData(MapData* dest, int stageIndex)
 			switch (buffer[j])
 			{
 				case '-':
-				    dest->structure[i][j] = _NONE_;
-				    dest->map[i][j] = _NONE_;
+				    dest->map[_ORIGIN_MAP_INDEX_][i][j] = _NONE_;
 				    break;
 				case 'p':
-				    dest->map[i][j] = _PLAYER_;
-				    dest->playerBeginPos.x = j;
-				    dest->playerBeginPos.y = i;
+//				    dest->structure[i][j] = _PLAYER_;
+				    dest->map[_ORIGIN_MAP_INDEX_][i][j] = _PLAYER_;
+				    dest->playerBeginPos.X = j;
+				    dest->playerBeginPos.Y = i;
+				    dest->currPlayerPos = dest->playerBeginPos;
 					break;
 				case 'w':
-				    dest->structure[i][j] = _WALL_;
-				    dest->map[i][j] = _WALL_;
+				    dest->map[_ORIGIN_MAP_INDEX_][i][j] = _WALL_;
 				    break;
 				case 'a':
-				    dest->structure[i][j] = _BALL_;
-				    dest->map[i][j] = _BALL_;
+				    dest->map[_ORIGIN_MAP_INDEX_][i][j] = _BALL_;
 				    break;
 				case 'b':
-				    dest->structure[i][j] = _EMPTY_BOX_;
-				    dest->map[i][j] = _EMPTY_BOX_;
+				    dest->map[_ORIGIN_MAP_INDEX_][i][j] = _EMPTY_BOX_;
+					dest->originalBoxesPos[dest->boxCount].X = j;
+					dest->originalBoxesPos[dest->boxCount].Y = i;
 					dest->boxCount++;
-					dest->originalBoxesPos[mapData.boxCount].x = j;
-					dest->originalBoxesPos[mapData.boxCount].y = i;
 					break;
 			}
 		}
 	}	
+	
+	memmove(dest->map[_CURRENT_MAP_INDEX_], dest->map[_ORIGIN_MAP_INDEX_], _MAP_WIDTH_*_MAP_HEIGHT_*sizeof(GameObject));
 }
 
 void releaseMapDataDLL()
 {
-	MapDataDLL* node = head;
+	MapDataDLL* node;
 	MapDataDLL* del;
 	
+	node = head;
 	while (node != tail)
 	{
 		del = node;
@@ -356,10 +186,9 @@ void releaseMapDataDLL()
 	tail = NULL;
 }
 
-MapData* findMapData(int index)
+MapDataDLL* findMapDataDLL(int stageIndex)
 {
 	MapDataDLL* node;
-	int stageIndex = index;
 	
 	node = head;
 	while (node != NULL && 1 < stageIndex)
@@ -367,5 +196,191 @@ MapData* findMapData(int index)
 	   node = node->after;
 	   stageIndex--;
     }
-	return &(node->mapData);
+    
+	return node;
+}
+
+void copyMapData(MapData* dest, MapData* src)
+{
+	dest->stageIndex = src->stageIndex;
+	dest->width = src->width;
+	dest->height = src->height;
+	dest->boxCount = src->boxCount;
+	memmove(&(dest->map), &(src->map), 2*_MAP_WIDTH_*_MAP_HEIGHT_*sizeof(GameObject));
+	memmove(&(dest->playerBeginPos), &(src->playerBeginPos), sizeof(COORD));
+	memmove(&(dest->currPlayerPos), &(src->currPlayerPos), sizeof(COORD));
+	memmove(&(dest->originalBoxesPos), &(src->originalBoxesPos), _MAP_WIDTH_*_MAP_HEIGHT_*sizeof(COORD));
+}
+
+
+/* Control playing stage and player. */
+
+
+void setPlayerPos(MapData* map, int x, int y)
+{
+	map->currPlayerPos.X = x;
+	map->currPlayerPos.Y = y;
+}
+
+/* Translate player's position. If success it returns true, or false. */
+Flag translatePlayerPos(MapData* map, int x, int y)
+{
+	int newX = map->currPlayerPos.X + x, newY = map->currPlayerPos.Y + y;
+	
+	/* If player tried get out of the Map */
+	if (newX < 0 || map->width <= newX)
+	{
+		showRedEffect();
+		return _BLOCKED_;
+	}
+	if (newY < 0 || map->height <= newY)
+	{
+		showRedEffect();
+		return _BLOCKED_;
+	}
+	
+	/* Check the position where player moved on. */
+	switch (map->map[_CURRENT_MAP_INDEX_][newY][newX])
+	{
+		case _WALL_:
+			showRedEffect();
+			return _BLOCKED_;
+			
+		case _FILLED_BOX_:
+			if (pushFilledBox(map, newX, newY) == _BLOCKED_) 
+				return _BLOCKED_;
+			else
+				break;
+		case _BALL_:
+			switch (pushBall(map, newX, newY))
+			{
+				case _TRUE_:
+					break;
+				case _BLOCKED_:
+					return _BLOCKED_;
+				case _STAGE_CLEAR_:
+					setPlayerPos(map, newX, newY);
+					return _STAGE_CLEAR_;
+			}
+			
+		case _NONE_:
+		case _EMPTY_BOX_:
+			break;
+	}
+	
+	setPlayerPos(map, newX, newY);
+	return _TRUE_;
+}
+
+Flag pushBall(MapData* map, int ballX, int ballY)
+{
+	int destX = ballX + (ballX - map->currPlayerPos.X), destY = ballY + (ballY - map->currPlayerPos.Y);
+	
+	/* If tried to push out of the Map */
+	if (destX < 0 || map->width <= destX)
+	{
+		showRedEffect();
+		return _BLOCKED_;
+	}
+	if (destY < 0 || map->height <= destY)
+	{
+		showRedEffect();
+		return _BLOCKED_;
+	}
+	
+	switch (map->map[_CURRENT_MAP_INDEX_][destY][destX])
+	{
+		case _WALL_:
+		case _FILLED_BOX_:
+			showRedEffect();
+			return _BLOCKED_;
+			
+		case _EMPTY_BOX_:
+			changePositionState(map, destX, destY, _FILLED_BOX_);
+			if (checkClearStage(map)) return _STAGE_CLEAR_;
+			break;
+		
+		case _NONE_:
+			changePositionState(map, destX, destY, _BALL_);
+			break;
+	}
+	
+	changePositionState(map, ballX, ballY, _NONE_);
+	return _TRUE_;
+}
+
+Flag pushFilledBox(MapData* map, int boxX, int boxY)
+{
+	int destX = boxX + (boxX - map->currPlayerPos.X), destY = boxY + (boxY - map->currPlayerPos.Y);
+	
+	/* If tried to push out of the Map */
+	if (destX < 0 || map->width <= destX)
+	{
+		showRedEffect();
+		return _BLOCKED_;
+	}
+	if (destY < 0 || map->height <= destY)
+	{
+		showRedEffect();
+		return _BLOCKED_;
+	}
+	
+	switch (map->map[_CURRENT_MAP_INDEX_][destY][destX])
+	{
+		case _WALL_:
+		case _FILLED_BOX_:
+		case _BALL_:
+			showRedEffect();
+			return _BLOCKED_;
+			
+		case _EMPTY_BOX_:
+			changePositionState(map, destX, destY, _FILLED_BOX_);
+			break;
+		
+		case _NONE_:
+			changePositionState(map, destX, destY, _BALL_);
+			break;
+	}
+	
+	changePositionState(map, boxX, boxY, _EMPTY_BOX_);
+	return _TRUE_;
+}
+
+void changePositionState(MapData* map, int x, int y, GameObject o)
+{
+	/*
+	GameObject Print Priority
+	1. Ball & Filled Box
+	2. Empty Box (not on 'mapData.map[][]' array, 'mapData.structure[][]')
+	3. etc.. (like _NONE_)
+	*/
+	if (o == _BALL_ || o == _FILLED_BOX_)
+	{
+		map->map[_CURRENT_MAP_INDEX_][y][x] = o;
+		return;
+	}
+	if (map->map[_ORIGIN_MAP_INDEX_][y][x] == _EMPTY_BOX_)
+	{
+		map->map[_CURRENT_MAP_INDEX_][y][x] = _EMPTY_BOX_;
+		return;
+	}
+	map->map[_CURRENT_MAP_INDEX_][y][x] = o;
+}
+
+bool EqualsWithPlayerPos(MapData* map, int x, int y)
+{
+	if (map->currPlayerPos.X == x && map->currPlayerPos.Y == y)
+		return true;
+	return false;
+}
+
+bool checkClearStage(MapData* map)
+{
+	int i;
+	for (i = 0; i < map->boxCount; i++)
+	{
+		if (map->map[_ORIGIN_MAP_INDEX_][map->originalBoxesPos[i].Y][map->originalBoxesPos[i].X] != _FILLED_BOX_)
+			return false;
+	}
+	return true;
 }

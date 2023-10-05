@@ -1,8 +1,10 @@
 #include "../Headers/PlayStage.h"
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <time.h>
 #include <conio.h>
+#include <process.h>
 #include <Windows.h>
 
 #include "../Headers/BaseData.h"
@@ -11,6 +13,7 @@
 
 void playStage()
 {
+	MapDataDLL* pMapDLL;
 	Flag flag;
 	int stageIndex = 1;
 	
@@ -20,15 +23,16 @@ void playStage()
 		if (flag == _STAGE_SELECT_)
 			stageIndex = loadStageSelect(stageIndex);
 		
-		loadMapData(&mapData, stageIndex);
-		printScreen(renderStageLoadingScreen, true, true);
+//		_beginthreadex(NULL, 0, printStageLoadingScreen, (void*)&bPaused, 0, NULL);
+		printStageLoadingScreen(stageIndex);
+		pMapDLL = findMapDataDLL(stageIndex);
 		
-		flag = playGame(stageIndex);
+		flag = playGame(&(pMapDLL->mapData));
 		
 		switch (flag)
 		{
 			case _STAGE_CLEAR_:
-				printScreen(renderStageClearScreen, true, true);
+				printStageClearScreen(stageIndex);
 				stageIndex++;
 				break;
 			case _STAGE_RESTART_:
@@ -45,13 +49,14 @@ void playStage()
 int loadStageSelect(int stageIndex)
 {
 	Flag flag;
+	MapDataDLL* pMapDLL;
 	char input;
-	int maxStage, currStage;
+	int maxStage;
 	
 	maxStage = countMaxStage();
-	currStage = stageIndex;
+	pMapDLL = findMapDataDLL(stageIndex);		// stageIndex = 1
 	
-	printStageSelectScreen(renderStageSelectScreen, findMapData(currStage), maxStage, true, true);
+	printStageSelectScreen(&(pMapDLL->mapData), maxStage);
 	while (1)
 	{
 		if (_kbhit())
@@ -61,23 +66,21 @@ int loadStageSelect(int stageIndex)
 			{
 				case _ESCAPE_:
 				case _LEFT_:
-					if (1 < currStage)
-						currStage -= 1;
-					
-					printStageSelectScreen(renderStageSelectScreen, findMapData(currStage), maxStage, true, true);
-					WaitForSeconds(1);
+					if (1 < pMapDLL->mapData.stageIndex)
+						pMapDLL = pMapDLL->before;
+					printStageSelectScreen(&(pMapDLL->mapData), maxStage);
+					WaitForSeconds(0.3);
 					break;
 				case _RIGHT_:
-					if (currStage < maxStage)
-						currStage += 1;
-						
-					printStageSelectScreen(renderStageSelectScreen, findMapData(currStage), maxStage, true, true);
-					WaitForSeconds(1);
+					if (pMapDLL->mapData.stageIndex < maxStage)
+						pMapDLL = pMapDLL->after;
+					printStageSelectScreen(&(pMapDLL->mapData), maxStage);
+					WaitForSeconds(0.3);
 					break;
 				case _SPACE_:
 				case _CARRIGE_RETURN_:
 					/* select ok */
-					return currStage;
+					return pMapDLL->mapData.stageIndex;
 				default:
 					break;
 			}
@@ -85,33 +88,36 @@ int loadStageSelect(int stageIndex)
 	}
 }
 
-Flag playGame(int stageIndex)
+Flag playGame(MapData* pMap)
 {
 	Flag flag;
+	MapData map;
 	char input;
 	
 //	cleanInputBuffer();
 	
+	flag = _FALSE_;
+	copyMapData(&map, pMap);
+	setPlayerPos(&map, map.playerBeginPos.X, map.playerBeginPos.Y);
+	
 	while (1)
 	{
-		flag = _FALSE_;
-
 		if (_kbhit())
 		{
 			input = _getch();
 			switch (input)
 			{
 				case _LEFT_:
-					flag = translatePlayerPos(-1, 0);
+					flag = translatePlayerPos(&map, -1, 0);
 					break;
 				case _RIGHT_:
-					flag = translatePlayerPos(1, 0);
+					flag = translatePlayerPos(&map, 1, 0);
 					break;
 				case _UP_:
-					flag = translatePlayerPos(0, -1);
+					flag = translatePlayerPos(&map, 0, -1);
 					break;
 				case _DOWN_:
-					flag = translatePlayerPos(0, 1);
+					flag = translatePlayerPos(&map, 0, 1);
 					break;
 				case _UPPER_R_:
 				case _LOWER_R_:
@@ -131,7 +137,7 @@ Flag playGame(int stageIndex)
 			break;
 		
 		/* Render and Print Stage(= map) data on bufferString(= char* bufferString). */
-		printScreen(renderStageMapScreen, true, true);
+		printStageMapScreen(&map);
 		
 		if (flag == _STAGE_CLEAR_)
 			break;
@@ -150,7 +156,7 @@ Flag confirmRestartStage()
 {
 	char input;
 	
-	printScreen(renderConfirmRestartScreen, true, true);
+	printScreen(renderConfirmRestartScreen);
 	
 	while (1)
 	{

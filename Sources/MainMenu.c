@@ -30,7 +30,7 @@ int runMainMenu()
 	int selectIndex = 0;
 	char input;
 	
-	printMainMenuScreen(renderMainMenuScreen, selectIndex, true, true);
+	printMainMenuScreen(selectIndex);
 	while (1)
 	{
 		if (_kbhit())
@@ -42,14 +42,14 @@ int runMainMenu()
 					if (selectIndex + 1 < 2)
 						selectIndex += 1;
 					
-					printMainMenuScreen(renderMainMenuScreen, selectIndex, true, true);
+					printMainMenuScreen(selectIndex);
 					WaitForSeconds(0.5);
 					break;
 				case _UP_:
 					if (0 <= selectIndex - 1)
 						selectIndex -= 1;
 						
-					printMainMenuScreen(renderMainMenuScreen, selectIndex, true, true);
+					printMainMenuScreen(selectIndex);
 					WaitForSeconds(0.5);
 					break;
 				case _SPACE_:
