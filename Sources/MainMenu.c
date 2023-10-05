@@ -27,6 +27,7 @@ void loadMainMenu()
 
 int runMainMenu()
 {
+	const int MAX_SELECT = 2;
 	int selectIndex = 0;
 	char input;
 	
@@ -39,18 +40,18 @@ int runMainMenu()
 			switch (input)
 			{
 				case _DOWN_:
-					if (selectIndex + 1 < 2)
+					if (selectIndex + 1 < MAX_SELECT)
 						selectIndex += 1;
 					
 					printMainMenuScreen(selectIndex);
-					WaitForSeconds(0.5);
+					WaitForSeconds(0.1);
 					break;
 				case _UP_:
 					if (0 <= selectIndex - 1)
 						selectIndex -= 1;
 						
 					printMainMenuScreen(selectIndex);
-					WaitForSeconds(0.5);
+					WaitForSeconds(0.1);
 					break;
 				case _SPACE_:
 				case _CARRIGE_RETURN_:

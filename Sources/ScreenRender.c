@@ -47,15 +47,15 @@ void printMainMenuScreen(int selectIndex)
 	swapScreenIndex();
 }
 
-void printStageSelectScreen(MapData* map, int maxStage)
+void printStageSelectScreen(MapData* map, int maxStage, bool bLeftDown, bool bRightDown)
 {
 	clearScreen();
-	renderStageSelectScreen(map, maxStage);
+	renderStageSelectScreen(map, maxStage, bLeftDown, bRightDown);
 	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
 	swapScreenIndex();
 }
 
-void printStageLoadingScreen(int stageIndex)
+void printStageLoadingScreen(char* target)
 {
 	const int LOOPMAX = 3;
 	int i;
@@ -63,28 +63,12 @@ void printStageLoadingScreen(int stageIndex)
 	for (i = 0; i < LOOPMAX; i++)
 	{
 		clearScreen();
-		renderStageLoadingScreen(stageIndex, i);
+		renderStageLoadingScreen(target, i);
 		SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
 		swapScreenIndex();
 		WaitForSeconds(0.2);
 	}
 }
-//unsigned _stdcall printStageLoadingScreen(void* pPaused)
-//{
-//	const int LOOPMAX = 3;
-//	bool* bPaused = (bool*)pPaused;
-//	int i;
-//	
-//	for (i = 0; i < LOOPMAX; i++)
-//	{
-//		clearScreen();
-//		renderStageLoadingScreen(i);
-//		SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
-//		swapScreenIndex();
-//		WaitForSeconds(0.2);
-//	}
-//	*bPaused = false;
-//}
 
 void printStageMapScreen(MapData* pMap)
 {
@@ -96,7 +80,7 @@ void printStageMapScreen(MapData* pMap)
 
 void printStageClearScreen(int stageIndex)
 {
-	const int LOOPMAX = 5;
+	const int LOOPMAX = 7;
 	int i = 0;
 	
 	for (i = 0; i < LOOPMAX; i++)
@@ -105,8 +89,16 @@ void printStageClearScreen(int stageIndex)
 		renderStageClearScreen(stageIndex, i);
 		SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
 		swapScreenIndex();
-		WaitForSeconds(0.3);
+		WaitForSeconds(0.1);
 	}
+}
+
+void printPauseScreen(int selectIndex)
+{
+	clearScreen();
+	renderPauseScreen(selectIndex);
+	SetConsoleActiveScreenBuffer(screenBuffer.buffer[screenBuffer.currentIndex]);
+	swapScreenIndex();
 }
 
 void clearScreen()	
@@ -202,7 +194,6 @@ void renderMainMenuScreen(int selectIndex)
 	
 	fillColorToScreen(bColor, tColor);
 	
-	setColor(bColor, tColor);
 	sprintf(title, "Sokoban : 19 Song JaeUk in Hansung Univ.");
 	titlePos.X = (_SCREEN_WIDTH_ - strlen(title)) * 0.5;
 	
@@ -213,6 +204,7 @@ void renderMainMenuScreen(int selectIndex)
 	contentPos[1].X = (_SCREEN_WIDTH_ - strlen(content[1])) * 0.5;
 	contentPos[1].Y = contentPosY + 1;
 	
+	setColor(bColor, tColor);
 	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], titlePos);	
 	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], title, strlen(title), &dw, NULL);
 	for (i = 0; i < 2; i++)
@@ -236,21 +228,49 @@ void renderMainMenuScreen(int selectIndex)
 }
 
 /* Stage Select */
-void renderStageSelectScreen(MapData* map, int maxStage)
+void renderStageSelectScreen(MapData* map, int maxStage, bool bLeftDown, bool bRightDown)
 {
 	ConsoleColor bColor = _HOTPINK_, bBlankColor = _DARK_PURPLE_, tColor = _BLACK_, bStructColor = _DARK_PURPLE_, tStructColor = _GREEN_;
 	COORD leftArrowPos = { _SCREEN_WIDTH_ * 0.08, _SCREEN_HEIGHT_ * 0.5 }, rightArrowPos = { _SCREEN_WIDTH_ * 0.92, _SCREEN_HEIGHT_ * 0.5 };
 	COORD titlePos = { 0, _SCREEN_HEIGHT_ * 0.1 };
 	COORD structurePos = { (_SCREEN_WIDTH_ - (_MAP_WIDTH_ * 1.5)) * 0.5, (_SCREEN_HEIGHT_ - _MAP_HEIGHT_) * 0.5 + 2 };
-	COORD playerPos;
+	COORD playerPos, halfPos;
+	DWORD dw;
 	char leftArrowStr[5] = "¢¸", rightArrowStr[5] = "¢º";
 	char title[_SCREEN_WIDTH_ * 5], structure[(int)(_MAP_WIDTH_*1.5+1)*_MAP_HEIGHT_+1];
-	DWORD dw;
-	int i, j, currIdx;
+	char* halfScreen = structure;
+	int i, j, currIdx, halfWidth = _SCREEN_WIDTH_ * 0.5;
 	
 	fillColorToScreen(bColor, tColor);
 	
+	/* Fill color if arrow key down. */
+	halfScreen[0] = '\0';
+	if (bLeftDown || bRightDown)
+	{
+		for (i = 0; i < _SCREEN_HEIGHT_; i++)
+		{
+			currIdx = i * (halfWidth + 1);
+			memset(halfScreen + currIdx, ' ', halfWidth * sizeof(char));
+			halfScreen[currIdx+halfWidth] = '\n';
+		}
+		
+		setColor(_YELLOW_, tColor);
+		if (bLeftDown)
+		{
+			halfPos.X = 0;
+			halfPos.Y = 0;
+			renderString(halfScreen, halfPos);
+		}
+		else
+		{
+			halfPos.X = halfWidth;
+			halfPos.Y = 0;
+			renderString(halfScreen, halfPos);
+		}
+	}
+	
 	/* Print Each Arrows. */
+	setColor(bColor, tColor);
 	if (1 < map->stageIndex)
 	   renderString(leftArrowStr, leftArrowPos);
 	if (map->stageIndex < maxStage)
@@ -327,7 +347,7 @@ void renderStageSelectScreen(MapData* map, int maxStage)
 }
 
 /* Stage Loading */
-void renderStageLoadingScreen(int stageIndex, int loop)
+void renderStageLoadingScreen(char* target, int loop)
 {
 	ConsoleColor bColor = _SKYBLUE_, tColor = _BLACK_;
 	COORD pos = { 0, _SCREEN_HEIGHT_ * 0.5};
@@ -338,7 +358,7 @@ void renderStageLoadingScreen(int stageIndex, int loop)
 	fillColorToScreen(bColor, tColor);
 	
 	setColor(bColor, tColor);
-	sprintf(loadingText, "Stage%03d Loading", stageIndex);
+	sprintf(loadingText, "Loading %s", target);
 	for (i = 0; i < loop; i++)
 		strcat(loadingText, " .");
 		
@@ -386,7 +406,7 @@ void renderStageClearScreen(int stageIndex, int loop)
 	setColor(bColor, tColor);
 	sprintf(stageClearText, "Stage%03d Clear", stageIndex);
 	for (i = 0; i < loop; i++)
-		strcat(stageClearText, " .");
+		strcat(stageClearText, " !");
 		
 	slen = strlen(stageClearText);
 	
@@ -399,11 +419,13 @@ void renderStageClearScreen(int stageIndex, int loop)
 void renderStageMapScreen(MapData* map)
 {
 	ConsoleColor bColor = _HOTPINK_, bBlankColor = _DARK_PURPLE_, tColor = _BLUE_, tPlayerColor = _YELLOW_;
+	ConsoleColor bToolColor = _BLACK_, tToolColor = _WHITE_;
 	int centerAlignX = ((_SCREEN_WIDTH_)-((map->width+2)*2))*0.5, centerAlignY = (_SCREEN_HEIGHT_ - map->height)*0.5-1;
 	COORD centeredMapPos = { centerAlignX, centerAlignY }, playerPos = { centeredMapPos.X+((map->currPlayerPos.X+1)*2), centeredMapPos.Y+map->currPlayerPos.Y+1 };
+	COORD tooltipPos = { _SCREEN_WIDTH_ * 0.1, _SCREEN_HEIGHT_ * 0.5 - 6 };
 	DWORD dw;
-	char stageMapString[(_SCREEN_WIDTH_*2+1)*_SCREEN_HEIGHT_+1];
-	int i, j;
+	char stageMapString[(_SCREEN_WIDTH_*2+1)*_SCREEN_HEIGHT_+1], tooltip[5][32];
+	int i, j, currIdx, tooltipX;
 	
 	fillColorToScreen(bBlankColor, tColor);
 	
@@ -452,10 +474,101 @@ void renderStageMapScreen(MapData* map)
 	}
 	strcat(stageMapString, "\n");
 	
-	/* Write stage map string to screen buffer. */
+	/* Render stage map string to screen buffer. */
 	setColor(bColor, tColor);
 	renderString(stageMapString, centeredMapPos);
 	renderPlayer(playerPos, bColor, tPlayerColor);
+	
+	/* Render Tooltip */
+	// background
+	stageMapString[0] = '\0';
+	for (i = 0; i < 13; i++)
+	{
+		currIdx = i * (24 + 1);
+		memset(stageMapString+currIdx, ' ', 24 * sizeof(char));
+		stageMapString[currIdx+24] = '\n';
+	}
+	stageMapString[13*25] = '\0';
+	setColor(bToolColor, tToolColor);
+	renderString(stageMapString, tooltipPos);
+	// text
+	sprintf(tooltip[0], "WASD or ¡è¡é¡æ¡ç");
+	tooltipX = tooltipPos.X;
+	sprintf(tooltip[1], "E to Undo");
+	sprintf(tooltip[2], "R to Restart");
+	sprintf(tooltip[3], "ESC to Pause Menu");
+	sprintf(tooltip[4], "Push balls into boxes!");
+	
+	for (i = 0; i < 5; i++)
+	{
+		setColor(bToolColor, tToolColor);
+		tooltipPos.X = tooltipX + (24 - strlen(tooltip[i])) * 0.5;
+		tooltipPos.Y += 2;
+		renderString(tooltip[i], tooltipPos);
+	}
+	
+	
+}
+
+void renderPauseScreen(int selectIndex)
+{
+	ConsoleColor bColor = _HOTPINK_, tColor = _DARK_PURPLE_, tTitleColor = _DARK_PURPLE_, tSelColor = _SKYBLUE_;
+	const int MAX_SELECT = 5;
+	COORD titlePos = { 0, (int)(_SCREEN_HEIGHT_ * 0.3) };
+	COORD contentPos[MAX_SELECT], selectedPos;
+	DWORD dw;
+	char title[64], content[MAX_SELECT][64], selectedChar[5] = "¢º ";
+	char bufferString[(_MAP_WIDTH_*2)*_MAP_HEIGHT_+1] = "";
+	int i, contentPosY = _SCREEN_HEIGHT_ * 0.5;
+	
+	fillColorToScreen(bColor, tTitleColor);
+	
+	sprintf(title, "[ PAUSE MENU ]");
+	titlePos.X = (_SCREEN_WIDTH_ - strlen(title)) * 0.5;
+	
+	i = 0;
+	sprintf(content[i], "Continue");
+	contentPos[i].X = (_SCREEN_WIDTH_ - strlen(content[i])) * 0.5;
+	contentPos[i].Y = contentPosY;
+	i++;
+	sprintf(content[i], "Restart This Stage");
+	contentPos[i].X = (_SCREEN_WIDTH_ - strlen(content[i])) * 0.5;
+	contentPos[i].Y = contentPosY + i * 2;
+	i++;
+	sprintf(content[i], "Return to Stage Selection");
+	contentPos[i].X = (_SCREEN_WIDTH_ - strlen(content[i])) * 0.5;
+	contentPos[i].Y = contentPosY + i * 2;
+	i++;
+	sprintf(content[i], "Return to Main Menu");
+	contentPos[i].X = (_SCREEN_WIDTH_ - strlen(content[i])) * 0.5;
+	contentPos[i].Y = contentPosY + i * 2;
+	i++;
+	sprintf(content[i], "Exit Game");
+	contentPos[i].X = (_SCREEN_WIDTH_ - strlen(content[i])) * 0.5;
+	contentPos[i].Y = contentPosY + i * 2;
+	i++;
+	
+	setColor(bColor, tColor);
+	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], titlePos);	
+	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], title, strlen(title), &dw, NULL);
+	for (i = 0; i < MAX_SELECT; i++)
+	{
+		if (i == selectIndex)
+		{
+			selectedPos.X = contentPos[i].X - 3;
+			selectedPos.Y = contentPos[i].Y;
+	        setColor(bColor, tSelColor);
+		}
+		else
+		{
+	        setColor(bColor, tColor);
+		}
+		SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], contentPos[i]);	
+		WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], content[i], strlen(content[i]), &dw, NULL);
+	}
+	setColor(bColor, tSelColor);
+	SetConsoleCursorPosition(screenBuffer.buffer[screenBuffer.currentIndex], selectedPos);	
+	WriteFile(screenBuffer.buffer[screenBuffer.currentIndex], selectedChar, strlen(selectedChar), &dw, NULL);
 }
 
 void renderPlayer(COORD playerPos, ConsoleColor bColor, ConsoleColor tColor)

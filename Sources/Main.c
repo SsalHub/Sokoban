@@ -7,8 +7,12 @@ int main()
 {
     initScreen();
 	initGame();
-	loadMainMenu();
-	playStage();
+	
+	while (1)
+	{
+		loadMainMenu();
+		playStage();
+	}
 	
 	return 0;
 }

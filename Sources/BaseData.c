@@ -14,6 +14,7 @@
 char character[7][5];
 MapDataDLL* head;
 MapDataDLL* tail;
+int maxStage;
 
 void fortestfunc(char* s)
 {
@@ -22,7 +23,7 @@ void fortestfunc(char* s)
 
 void initGame()
 {
-	int i, maxStage;
+	int i;
 	MapDataDLL* node;
 	head = NULL;
 	tail = NULL;
@@ -67,13 +68,18 @@ void initGame()
 		loadMapData(&(node->mapData), i);
 	}
 }
-
+/* Must add something */
 void exitGame()
 {
 	releaseMapDataDLL();
-	system("cls");
-	printf("THANKS FOR PLAYING\n\n\n\n\n\n\n");
 	exit(0);
+}
+/* Must add something */
+void YouWonThisGame()
+{
+	releaseMapDataDLL();
+	exit(0);
+	// or just show celebration screen, and return to main menu
 }
 
 /* Load and Read game files, and Initialize game datas about stage map data. */
@@ -124,6 +130,8 @@ void loadMapData(MapData* dest, int stageIndex)
 		throwFatalException(_STAGE_FILE_NOT_FOUND_);
 	
 	dest->stageIndex = stageIndex;
+	dest->currentMove = 0;
+	dest->history = NULL;
 	
 	/* Line 1 in .skb file : Width and Height of Map */
 	fgets(buffer, _MAP_WIDTH_+1, fp);
@@ -163,9 +171,27 @@ void loadMapData(MapData* dest, int stageIndex)
 					break;
 			}
 		}
-	}	
-	
+	}
 	memmove(dest->map[_CURRENT_MAP_INDEX_], dest->map[_ORIGIN_MAP_INDEX_], _MAP_WIDTH_*_MAP_HEIGHT_*sizeof(GameObject));
+}
+
+void pushPlayerAction(MapData* map, COORD pos)
+{
+	if (map->history == NULL)
+	{
+		map->history = (PlayerAction*)malloc(sizeof(PlayerAction));
+		memmove(&(map->history->movement), &pos, sizeof(COORD));
+		map->history->before = NULL;
+		map->history->after = NULL;
+		return;
+	}
+	
+	PlayerAction* node = (PlayerAction*)malloc(sizeof(PlayerAction));
+	memmove(&(node->movement), &pos, sizeof(COORD));
+	map->history->after = node;
+	node->before = map->history;
+	node->after = NULL;
+	map->history = node;
 }
 
 void releaseMapDataDLL()
@@ -184,6 +210,21 @@ void releaseMapDataDLL()
 	
 	head = NULL;
 	tail = NULL;
+}
+
+void releasePlayerAction(MapData* map)
+{
+	PlayerAction* node;
+	PlayerAction* del;
+	
+	node = map->history;
+	while (node != NULL)
+	{
+		del = node;
+		node = node->after;
+		free(del);
+	}
+	map->history = NULL;
 }
 
 MapDataDLL* findMapDataDLL(int stageIndex)
@@ -225,6 +266,7 @@ void setPlayerPos(MapData* map, int x, int y)
 /* Translate player's position. If success it returns true, or false. */
 Flag translatePlayerPos(MapData* map, int x, int y)
 {
+	COORD movement = { x, y };
 	int newX = map->currPlayerPos.X + x, newY = map->currPlayerPos.Y + y;
 	
 	/* If player tried get out of the Map */
@@ -269,6 +311,8 @@ Flag translatePlayerPos(MapData* map, int x, int y)
 	}
 	
 	setPlayerPos(map, newX, newY);
+	map->currentMove++;
+	pushPlayerAction(map, movement);
 	return _TRUE_;
 }
 
@@ -374,12 +418,32 @@ bool EqualsWithPlayerPos(MapData* map, int x, int y)
 	return false;
 }
 
+Flag undoPlayerAction(MapData* map)
+{
+	if (map->history == NULL)
+		return _FALSE_;
+	
+	PlayerAction* del;
+	Flag flag;
+	COORD pos;
+	
+	memmove(&pos, &(map->history->movement), sizeof(COORD));
+	del = map->history;
+	map->history = map->history->before;
+	free(del);
+	
+	flag = translatePlayerPos(map, -pos.X, -pos.Y);
+	
+	return flag;
+}
+
 bool checkClearStage(MapData* map)
 {
 	int i;
+	
 	for (i = 0; i < map->boxCount; i++)
 	{
-		if (map->map[_ORIGIN_MAP_INDEX_][map->originalBoxesPos[i].Y][map->originalBoxesPos[i].X] != _FILLED_BOX_)
+		if (map->map[_CURRENT_MAP_INDEX_][map->originalBoxesPos[i].Y][map->originalBoxesPos[i].X] != _FILLED_BOX_)
 			return false;
 	}
 	return true;

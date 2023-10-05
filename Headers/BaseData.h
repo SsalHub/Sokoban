@@ -20,6 +20,7 @@ typedef enum Flag
 	_STAGE_CLEAR_,
 	_STAGE_RESTART_,
 	_STAGE_SELECT_,
+	_MAIN_MENU_,
 	_START_GAME_,
 	_EXIT_GAME_,
 } Flag;
@@ -35,16 +36,25 @@ typedef enum GameObject
 	_OUT_OF_MAP_    = 6,
 } GameObject;
 
+typedef struct PlayerAction
+{
+	COORD movement;
+	struct PlayerAction* before;
+	struct PlayerAction* after;
+} PlayerAction;
+
 typedef struct MapData
 {
 	int stageIndex;
 	int width;
 	int height;
 	int boxCount;
+	int currentMove;
 	GameObject map[2][_MAP_HEIGHT_][_MAP_WIDTH_];
 	COORD playerBeginPos;
 	COORD currPlayerPos;
 	COORD originalBoxesPos[_MAP_WIDTH_*_MAP_HEIGHT_];
+	PlayerAction* history;
 } MapData;
 
 typedef struct MapDataDoublyLinkedList
@@ -57,15 +67,19 @@ typedef struct MapDataDoublyLinkedList
 extern char character[7][5];        // HEIGHT of array : GameObjects, WIDTH of array : char bytes(unicode)
 extern MapDataDLL* head;
 extern MapDataDLL* tail;
+extern int maxStage;
 
 void fortestfunc(char*);
 
 void initGame();
 void exitGame();
+void YouWonThisGame();
 /* Load and Read game files, and Initialize game datas about stage map data. */
 int countMaxStage();
 void loadMapData(MapData*, int);
+void pushPlayerAction(MapData*, COORD);
 void releaseMapDataDLL();
+void releasePlayerAction(MapData*);
 MapDataDLL* findMapDataDLL(int);
 void copyMapData(MapData*, MapData*);
 /* Control playing stage and player. */
@@ -75,4 +89,5 @@ Flag pushBall(MapData*, int, int);
 Flag pushFilledBox(MapData*, int, int);
 void changePositionState(MapData*, int, int, GameObject);
 bool EqualsWithPlayerPos(MapData*, int, int);
+Flag undoPlayerAction(MapData*);
 bool checkClearStage(MapData*);

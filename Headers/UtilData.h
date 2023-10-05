@@ -28,7 +28,9 @@ typedef enum InputType
 	_RIGHT_ 			= 77,
 	_UP_ 				= 72,
 	_DOWN_ 				= 80,
+	_UPPER_E_			= 69,
 	_UPPER_R_ 			= 82,
+	_LOWER_E_			= 101,
 	_LOWER_R_ 			= 114,
 	_CARRIGE_RETURN_ 	= 13,
 } InputType;

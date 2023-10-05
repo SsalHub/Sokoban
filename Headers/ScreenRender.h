@@ -24,11 +24,11 @@ extern ScreenBuffer screenBuffer;
 void initScreen();
 void printScreen(void (void));
 void printMainMenuScreen(int);
-void printStageSelectScreen(MapData*, int);
-void printStageLoadingScreen(int);
-//unsigned _stdcall printStageLoadingScreen(void*);
+void printStageSelectScreen(MapData*, int, bool, bool);
+void printStageLoadingScreen(char*);
 void printStageMapScreen(MapData*);
 void printStageClearScreen();
+void printPauseScreen(int);
 void clearScreen();
 void swapScreenIndex();
 void fillColorToScreen(ConsoleColor, ConsoleColor);
@@ -39,9 +39,10 @@ void showRedEffect(); 	// Red Effect
 /* Render functions */
 void renderString(char*, COORD);
 void renderMainMenuScreen(int);					// MainMenu
-void renderStageSelectScreen(MapData*, int);	// Stage Select
-void renderStageLoadingScreen(int, int);		// Stage Loading
+void renderStageSelectScreen(MapData*, int, bool, bool);	// Stage Select
+void renderStageLoadingScreen(char*, int);		// Stage Loading
 void renderConfirmRestartScreen();				// Confirm Stage Restart
 void renderStageClearScreen(int, int);			// Stage Clear
 void renderStageMapScreen(MapData*);			// Stage Map Data
-void renderPlayer(COORD, ConsoleColor, ConsoleColor);	// Player only, with player personal color
+void renderPauseScreen(int);					// Pause while playing stage
+void renderPlayer(COORD, ConsoleColor, ConsoleColor);		// Player only, with player personal color
