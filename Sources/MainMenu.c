@@ -39,7 +39,7 @@ int runMainMenu()
 			switch (input)
 			{
 				case _DOWN_:
-					if (selectIndex + 1 < 2) 
+					if (selectIndex + 1 < 2)
 						selectIndex += 1;
 					
 					printMainMenuScreen(renderMainMenuScreen, selectIndex, true, true);
@@ -60,7 +60,5 @@ int runMainMenu()
 					break;
 			}
 		}
-		
-		input = '\0';
 	}
 }

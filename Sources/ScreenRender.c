@@ -192,7 +192,7 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 {
 	ConsoleColor bColor = _OCEAN_BLUE_, tColor = _BLACK_, tSelectedColor = _HOTPINK_, tInputColor = _YELLOW_;
 	int stageSelectBoxY = (int)(_SCREEN_HEIGHT_ * 0.3), stageStructureY = (int)(_SCREEN_HEIGHT_ * 0.55);
-	COORD leftArrowPos = { (int)(_SCREEN_WIDTH_ * 0.3), stageSelectBoxY }, rightArrowPos = { (int)(_SCREEN_WIDTH_ * 0.7), stageSelectBoxY };
+	COORD leftArrowPos = { (int)(_SCREEN_WIDTH_ * 0.1), (int)(_SCREEN_HEIGHT_ * 0.5) }, rightArrowPos = { (int)(_SCREEN_WIDTH_ * 0.9), (int)(_SCREEN_HEIGHT_ * 0.5) };
 	COORD stageStructurePos = { 0, stageStructureY }, zero = { 0, 0 };
 	DWORD dw;
 	StageSelectBox stageSelectBox[3];
@@ -223,7 +223,7 @@ void renderStageSelectScreen(int maxStage, int stageIndex)
 		stageSelectBox[i].pos.X = (int)((_SCREEN_WIDTH_ - boxWidth) * (0.5 + boxPositionWeight[i]));
 		stageSelectBox[i].pos.Y = stageSelectBoxY;
 	}
-		
+	
 	/* Print Stage Select Boxes. */
 	for (i = 0; i < 3; i++)
 	{
